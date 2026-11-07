@@ -1,9 +1,9 @@
 # Progress Log
 
-- Phase 0: Setup and guardrails - COMPLETE (genesis hash UNVERIFIED, to be verified in Phase 3 with a cited docs URL)
+- Phase 0: Setup and guardrails - COMPLETE (genesis hash verified in Phase 3)
 - Phase 1: Database and shared state foundation - COMPLETE
 - Phase 2: Ingest API and security - COMPLETE
-- Phase 3: Solana integration and RPC router - NOT STARTED
+- Phase 3: Solana integration and RPC router - COMPLETE
 - Phase 4: Settlement worker, recovery, and shutdown - NOT STARTED
 - Phase 5: Device simulator - NOT STARTED
 - Phase 6: Operator console (dashboard) - NOT STARTED

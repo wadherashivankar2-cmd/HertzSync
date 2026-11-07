@@ -8,6 +8,13 @@
 - `tests/unit/money.test.ts`: 5 passed / 5 total (integer sums, float rejection, negative rejection, 9-decimal SOL formatting/parsing)
 - `tests/unit/state.test.ts`: 4 passed / 4 total (legal/illegal event and batch transitions)
 - `tests/unit/ids.test.ts`: 3 passed / 3 total (ULID time-sortability, memo length check, oversized memo rejection)
+- `tests/unit/rpc-router.test.ts`: 6 passed / 6 total
+  - Breaker opens after 3 failures (`CB_FAILURE_THRESHOLD`)
+  - Cooldown transitions open breaker to half-open
+  - Half-open success closes breaker and resets counter
+  - All-open returns null without throwing unhandled exceptions
+  - Failover to second endpoint when first throws error
+  - Immediate failover when first endpoint has chaos 'down' mode
 
 ## Integration Tests
 - `tests/integration/db.test.ts`: 4 passed / 4 total (WAL mode, busy_timeout=5000, foreign_keys=1, reopen persistence, unique key constraint, concurrent child/parent process writes)
@@ -21,6 +28,16 @@
   - Device reset with new epoch returns 202 and registers in audit_log
   - GET /api/v1/events/:id returns event state without exposing raw signature
 - `tests/integration/app-shutdown.test.ts`: 1 passed / 1 total (in-flight requests finish cleanly before exit 0 on SIGINT)
+- `tests/integration/solana-devnet.test.ts`: 4 passed / 4 total
+  - Cluster genesis hash check matches official DevNet genesis hash (`EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG`)
+  - Refuses startup if cluster genesis hash mismatch (S4 mainnet guard)
+  - Fetches fresh blockhash from live DevNet cluster
+  - Live DevNet transfer with memo (skips safely if treasury balance < `TREASURY_MIN_LAMPORTS`)
+- `tests/integration/cross-process-chaos.test.ts`: 4 passed / 4 total
+  - S13: Returns 404 when `CHAOS_ENABLED` is false
+  - Returns 401 when admin key is missing or invalid
+  - Returns 400 on malformed payload or unknown mode
+  - S19: Chaos flag written via app API route directly alters router endpoint selection in a separately spawned child worker process via SQLite `system_state`
 
 ## Security Tests
 - `tests/security/ingest-security.test.ts`: 5 passed / 5 total
@@ -31,7 +48,13 @@
   - S17: Conflicting content returns 409 and leaves original row intact
 
 ## Chaos & Recovery Tests
+- `tests/chaos/failover.test.ts`: 2 passed / 2 total
+  - Endpoint 1 timing out; call succeeds via endpoint 2
+  - Breaker trips on endpoint 1 after 3 timeouts, routing subsequent calls directly to endpoint 2
 
 ## Load Tests
 
 ## E2E Tests
+
+---
+**Total: 59 passed / 59 tests across 15 test suites**

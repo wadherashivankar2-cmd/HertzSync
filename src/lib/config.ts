@@ -1,10 +1,18 @@
 import { z } from "zod";
 
 /**
- * Placeholder for Solana DevNet genesis hash.
- * To be verified and cited directly from official Solana documentation in Phase 3.
+ * Solana DevNet Cluster Genesis Hash
+ * Value: EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG
+ *
+ * Official documentation source:
+ * https://docs.anza.xyz/clusters/available
+ * The exact line on https://docs.anza.xyz/clusters/available appears under the Devnet section
+ * in the validator command-line flags:
+ * `--expected-genesis-hash EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG \`
+ * Source code reference:
+ * https://github.com/anza-xyz/agave/blob/master/sdk/src/genesis_config.rs (ClusterType::Devnet)
  */
-export const DEVNET_GENESIS_HASH = "UNVERIFIED";
+export const DEVNET_GENESIS_HASH = "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG";
 
 export const envSchema = z.object({
   CLUSTER: z.literal("devnet", {
