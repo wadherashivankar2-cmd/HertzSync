@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { describe, it, expect, beforeAll } from "vitest";
 import { Keypair } from "@solana/web3.js";
 import { RpcRouter } from "../../src/lib/rpc-router";
@@ -11,6 +12,7 @@ import {
 } from "../../src/lib/solana";
 import { getConfig, DEVNET_GENESIS_HASH } from "../../src/lib/config";
 import { generateOrLoadTreasuryKey } from "../../scripts/keygen";
+import { generateUlid, buildBatchMemo } from "../../src/lib/ids";
 
 describe("Solana DevNet Integration and Guardrails (Phase 3)", () => {
   let db: ReturnType<typeof createDatabaseConnection>;
@@ -62,11 +64,27 @@ describe("Solana DevNet Integration and Guardrails (Phase 3)", () => {
       return;
     }
 
-    // Treasury has funds; execute real DevNet transfer with memo
-    const payee = Keypair.generate().publicKey.toBase58();
+    // Enforce run cap per test process execution (Blueprint & Phase 4 rule, capped in .env.example)
+    const maxTransfers = parseInt(process.env.MAX_LIVE_TRANSFERS_PER_TEST_RUN || "1", 10);
+    const currentCount = (globalThis as any).__liveDevnetTransferCount ?? 0;
+    if (currentCount >= maxTransfers) {
+      console.log(
+        `[DevNet Test Notice]: Skipping live DevNet transfer test. ` +
+        `Cap reached (${currentCount}/${maxTransfers} from MAX_LIVE_TRANSFERS_PER_TEST_RUN).`
+      );
+      expect(true).toBe(true);
+      return;
+    }
+    (globalThis as any).__liveDevnetTransferCount = currentCount + 1;
+
+    // Single documented recipient: treasury itself (cycles principal safely, net cost is only 5,000 lamport tx fee)
+    const payee = treasuryKey.publicKey.toBase58();
     // Must be at or above rent exemption minimum for a new system account (890,880 lamports)
     const lamportsToSend = 1_000_000; // 0.001 SOL
-    const memoText = "trickle:v1:TESTBATCH01:TESTHASH01";
+    const runId = crypto.randomBytes(4).toString("hex");
+    const batchId = generateUlid();
+    const eventsHash = crypto.createHash("sha256").update(`devnet_transfer_${runId}`).digest("hex");
+    const memoText = buildBatchMemo(batchId, eventsHash);
 
     const blockhashInfo = await getFreshBlockhash(router);
     const built = buildSettlementTx(

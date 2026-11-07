@@ -15,6 +15,19 @@
   - All-open returns null without throwing unhandled exceptions
   - Failover to second endpoint when first throws error
   - Immediate failover when first endpoint has chaos 'down' mode
+- `tests/unit/batcher.test.ts`: 4 passed / 4 total
+  - Hash determinism: `events_hash` is sha256 of sorted event IDs joined by newline
+  - Grouping by payee: creates separate batches for different payees
+  - Oldest first: selects queued events in ascending order of arrival
+  - Split at max: splits batch when `MAX_BATCH_LAMPORTS` or `BATCH_MAX_EVENTS` is reached
+- `tests/unit/retry-policy.test.ts`: 4 passed / 4 total
+  - Branch 1: confirmed elsewhere -> marks confirmed and does not resend
+  - Branch 2: not found before expiry (height <= last_valid) -> resends identical `serialized_tx` (double-pay safe)
+  - Branch 3: not found after expiry (height > last_valid) -> rebuilds with fresh blockhash, sets `expired_rebuilt`, then `submitted`
+  - Branch 4: max attempts exceeded -> moves to `failed_review` and flags events
+- `tests/unit/blockhash-freshness.test.ts`: 2 passed / 2 total
+  - Submit step calls network for a blockhash every time without reusing cached values
+  - Retry after expiry fetches fresh blockhash from network and updates `last_valid_block_height`
 
 ## Integration Tests
 - `tests/integration/db.test.ts`: 4 passed / 4 total (WAL mode, busy_timeout=5000, foreign_keys=1, reopen persistence, unique key constraint, concurrent child/parent process writes)
@@ -38,6 +51,17 @@
   - Returns 401 when admin key is missing or invalid
   - Returns 400 on malformed payload or unknown mode
   - S19: Chaos flag written via app API route directly alters router endpoint selection in a separately spawned child worker process via SQLite `system_state`
+- `tests/integration/worker.test.ts`: 1 passed / 1 total
+  - Full lifecycle queued -> batched -> submitted -> paid with mocked RPC; reconciliation verifies 0 lost
+- `tests/integration/worker-shutdown.test.ts`: 2 passed / 2 total
+  - SIGINT mid-batch finishes current step, exits 0, preserves submitted batch, and resumes on restart
+  - Second signal exits immediately with code 1
+- `tests/integration/treasury-guard.test.ts`: 3 passed / 3 total
+  - Blocks sends and logs plain English warning when treasury is empty (0 lamports)
+  - Blocks sends when treasury balance is below `TREASURY_MIN_LAMPORTS` threshold
+  - Allows send when treasury balance satisfies `TREASURY_MIN_LAMPORTS`
+- `tests/integration/wal-checkpoint.test.ts`: 1 passed / 1 total
+  - Passive checkpoint executes safely during burst writes, and reads succeed without blocking
 
 ## Security Tests
 - `tests/security/ingest-security.test.ts`: 5 passed / 5 total
@@ -46,15 +70,24 @@
   - S6: Database dump contains only SHA-256 hashes of API keys
   - S11: Table of 30 malformed payloads all return 400
   - S17: Conflicting content returns 409 and leaves original row intact
+- `tests/security/memo-limit.test.ts`: 2 passed / 2 total
+  - `buildBatchMemo` rejects memos exceeding `MEMO_MAX_BYTES` (120 bytes)
+  - `submitBatch` refuses to sign when memo exceeds 120 bytes, marks `failed_review`, flags events, and logs audit
 
 ## Chaos & Recovery Tests
 - `tests/chaos/failover.test.ts`: 2 passed / 2 total
   - Endpoint 1 timing out; call succeeds via endpoint 2
   - Breaker trips on endpoint 1 after 3 timeouts, routing subsequent calls directly to endpoint 2
+- `tests/chaos/outage.test.ts`: 1 passed / 1 total
+  - RPC down for simulated 60 seconds; events keep queuing; restore; drain; `recovery_seconds_last` recorded
+- `tests/chaos/crash-midbatch.test.ts`: 1 passed / 1 total
+  - SIGKILL after submit, before confirm; restart; exactly one confirmed batch per event and 0 lost/duplicates
+- `tests/chaos/lying-rpc.test.ts`: 1 passed / 1 total
+  - Chaos `lie` mode; detects single lying RPC and refuses to mark batch confirmed or events paid
 
 ## Load Tests
 
 ## E2E Tests
 
 ---
-**Total: 59 passed / 59 tests across 15 test suites**
+**Total: 81 passed / 81 tests across 26 test suites**

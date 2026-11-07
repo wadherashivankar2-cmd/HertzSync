@@ -28,6 +28,18 @@ export function getCounter(db: Database.Database, name: string): number {
   return row?.value ?? 0;
 }
 
+export function setCounter(
+  db: Database.Database,
+  name: string,
+  value: number
+): void {
+  db.prepare(`
+    INSERT INTO counters (name, value)
+    VALUES (?, ?)
+    ON CONFLICT (name) DO UPDATE SET value = ?;
+  `).run(name, value, value);
+}
+
 export function getAllCounters(db: Database.Database): Record<string, number> {
   const rows = db.prepare("SELECT name, value FROM counters").all() as Array<{
     name: string;
