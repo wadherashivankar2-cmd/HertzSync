@@ -5,6 +5,8 @@ import { getConfig, Config } from "../lib/config";
 import { createBatches } from "./batcher";
 import { submitBatch, retryBatch } from "./settle";
 import { runReconciliation } from "./reconcile";
+import { getSystemState, setSystemState } from "../lib/system-state";
+import { setCounter } from "../lib/counters";
 import { logger } from "../lib/logger";
 
 export class SettlementWorker {
@@ -135,6 +137,24 @@ export class SettlementWorker {
       }
 
       if (this.isStopping) return;
+
+      // Step 3.5: Recovery timer check (Blueprint Phase 7 & Section 8.1)
+      const restoreRecord = getSystemState<{ restoredAt?: number }>(this.db, "recovery:restore_time");
+      if (restoreRecord?.value?.restoredAt) {
+        const queueCounts = this.db.prepare(`
+          SELECT COUNT(*) as count FROM events WHERE state IN ('queued', 'batched')
+        `).get() as { count: number };
+
+        if (queueCounts.count === 0) {
+          const restoredAt = restoreRecord.value.restoredAt;
+          const now = Date.now();
+          const recoverySeconds = Math.max(1, Math.round((now - restoredAt) / 1000));
+          setSystemState(this.db, "recovery:last", { recoverySeconds, restoredAt, queueEmptiedAt: now });
+          setCounter(this.db, "recovery_seconds_last", recoverySeconds);
+          this.db.prepare("DELETE FROM system_state WHERE key = 'recovery:restore_time'").run();
+          logger.info(`Queue recovery complete in ${recoverySeconds}s (recorded in recovery:last)`);
+        }
+      }
 
       // Step 4: Run reconciliation if due
       const elapsedSinceReconcile = Date.now() - this.lastReconciliationTime;

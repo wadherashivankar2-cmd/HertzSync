@@ -87,6 +87,9 @@ export async function POST(req: NextRequest) {
   const db = getDb();
 
   setSystemState(db, `chaos:${endpoint}`, { mode });
+  if (mode === "off") {
+    setSystemState(db, "recovery:restore_time", { restoredAt: Date.now() });
+  }
   logger.info(`Chaos mode updated for endpoint ${endpoint} -> ${mode}`);
 
   return NextResponse.json({
