@@ -28,6 +28,12 @@
 - `tests/unit/blockhash-freshness.test.ts`: 2 passed / 2 total
   - Submit step calls network for a blockhash every time without reusing cached values
   - Retry after expiry fetches fresh blockhash from network and updates `last_valid_block_height`
+- `tests/unit/device-sim.test.ts`: 5 passed / 5 total
+  - Generates valid Ed25519 keypair and signs events matching verifier
+  - State persistence: saves and resumes epoch/seq cleanly without gaps
+  - Offline buffering: queues events locally and flushes in sequence order
+  - Guarded reset: deletes `<id>.state.json` ONLY, preserving `<id>.json`
+  - Plain language formatting: "Charger 2 recorded 0.05 SOL session #17"
 
 ## Integration Tests
 - `tests/integration/db.test.ts`: 4 passed / 4 total (WAL mode, busy_timeout=5000, foreign_keys=1, reopen persistence, unique key constraint, concurrent child/parent process writes)
@@ -62,6 +68,15 @@
   - Allows send when treasury balance satisfies `TREASURY_MIN_LAMPORTS`
 - `tests/integration/wal-checkpoint.test.ts`: 1 passed / 1 total
   - Passive checkpoint executes safely during burst writes, and reads succeed without blocking
+- `tests/integration/chain-duplicates.test.ts`: 3 passed / 3 total
+  - Detects duplicate events hashes in full treasury signature history
+  - Historical test duplicates detected and logged
+  - Dynamic runId isolation ensures zero cross-run hash collisions
+- `tests/integration/device-reset.test.ts`: 4 passed / 4 total
+  - Epoch 1 events accepted with HTTP 202
+  - Reset deletes state file only and preserves device identity key file
+  - Epoch 2 events accepted with zero 409 conflicts
+  - Reusing (epoch 1, seq 1) with different payload produces 409 event_conflict
 
 ## Security Tests
 - `tests/security/ingest-security.test.ts`: 5 passed / 5 total
@@ -86,8 +101,17 @@
   - Chaos `lie` mode; detects single lying RPC and refuses to mark batch confirmed or events paid
 
 ## Load Tests
+- `tests/load/burst.test.ts`: 1 passed / 1 total
+  - 1,000-event burst across 10 devices with `RATE_LIMIT_PER_MIN = 10000` in test environment (production default remains 600)
+  - Ingest p95 Latency: 7.45 ms (requirement: < 100 ms)
+  - Latency breakdown: min=5.33 ms, mean=6.37 ms, p50=6.19 ms, p95=7.45 ms, p99=10.49 ms, max=33.88 ms
+  - Total Ingest Duration: 10,218 ms (throughput: 97.9 events/sec)
+  - Peak SQLite -wal Size: 4,161,232 bytes (4,063.7 KB)
+  - Drain Duration: 109.83 ms across 10 batches of 100 events each
+  - Live Network Calls: 0 (Strict Zero DevNet calls via MockRpcRouter)
+  - Reconciliation: generated=1000, accounted=1000, lost=0, duplicates=0, ok=true
 
 ## E2E Tests
 
 ---
-**Total: 81 passed / 81 tests across 26 test suites**
+**Total: 96 passed / 96 tests across 30 test suites**

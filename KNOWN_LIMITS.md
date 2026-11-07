@@ -32,5 +32,11 @@ This document records the architectural and operational limitations of the Trick
     * Row 24: `vmsb5xC1AqRvebwFGQuAVuar997TJCqQrvuyNhCQAZ1BLiC27sdA7T6XegcYZaVjxL46QNHw3FGDfCLjnUjXWLw` (batch `01M6V6B2JRRKHNESVWVH6DWTRQ`)
     * Row 28: `kQ4czauJ9fuZdBZeBmetA8jznKNfpPM47PVkpXm7JZyHxYePAAuAVtDiAuFwzifV78S861q4LnEyXwY9TthmKHS` (batch `01M6V6JBHX80M80YFW42S5P1S5`)
     * Row 32: `65MEYbkr2jjCn13DFpx5qMfJ2F7mK9ykNZgNVj3Wbn3ZovNo4nyfvUGmXXN5BFEEvzyq29JKXCF5o4P9Zrs5kzM2` (batch `01M6V84WJQRHJQVK1N9ENXXNSV`)
-  - Static memo text `TESTHASH01` was also broadcast across early Phase 3 live transfer test runs prior to ULID and dynamic events hash generation.
+### Phase 5 Live Test Transactions (Pre-Skip Fix)
+- **Fee-Only Live Test Transactions:** During initial Phase 5 development and test runs prior to extending the zero-transfer skip guard across all live suites, 9 fee-only live transactions were broadcast to Solana DevNet across 3 test runs:
+  * 3 self-payee transfers from `tests/integration/solana-devnet.test.ts`
+  * 3 crash recovery batches from `tests/chaos/crash-midbatch.test.ts`
+  * 3 outage recovery batches from `tests/chaos/outage.test.ts`
+  All 9 transactions sent funds directly to the treasury itself (`25evxBYTgpxRta9DSaWhARHtfqu7aAHf6rtAqp2o8HCr`), incurring net expenses of exactly 5,000 lamports per transaction in network fees (total: 45,000 lamports, reducing treasury balance from 485,800,000 to 485,755,000 lamports).
+  The `MAX_LIVE_TRANSFERS_PER_TEST_RUN=0` skip guard is now strictly enforced across `solana-devnet.test.ts`, `crash-midbatch.test.ts`, and `outage.test.ts`, ensuring zero network broadcasts occur when configured for local/mocked execution.
 

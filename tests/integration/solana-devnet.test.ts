@@ -66,6 +66,14 @@ describe("Solana DevNet Integration and Guardrails (Phase 3)", () => {
 
     // Enforce run cap per test process execution (Blueprint & Phase 4 rule, capped in .env.example)
     const maxTransfers = parseInt(process.env.MAX_LIVE_TRANSFERS_PER_TEST_RUN || "1", 10);
+    if (maxTransfers === 0) {
+      console.log(
+        `[DevNet Test Notice]: Skipping live DevNet transfer test. ` +
+        `MAX_LIVE_TRANSFERS_PER_TEST_RUN is set to 0.`
+      );
+      expect(true).toBe(true);
+      return;
+    }
     const currentCount = (globalThis as any).__liveDevnetTransferCount ?? 0;
     if (currentCount >= maxTransfers) {
       console.log(

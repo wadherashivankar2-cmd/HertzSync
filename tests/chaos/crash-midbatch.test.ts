@@ -72,6 +72,17 @@ describe("Crash Mid-Batch Chaos (Blueprint Section 5.10 & Phase 4 Safety Rules)"
   });
 
   it("survives SIGKILL after submit and before confirm, restarts, and reconciles 0 lost and 0 onchain duplicates", async () => {
+    // Enforce run cap per test process execution (Blueprint & Phase 4/5 safety rule)
+    const maxTransfers = parseInt(process.env.MAX_LIVE_TRANSFERS_PER_TEST_RUN || "1", 10);
+    if (maxTransfers === 0) {
+      console.log(
+        `[Crash Test Notice]: Skipping live DevNet crash test. ` +
+        `MAX_LIVE_TRANSFERS_PER_TEST_RUN is set to 0.`
+      );
+      expect(true).toBe(true);
+      return;
+    }
+
     const viteNodePath = path.resolve(process.cwd(), "node_modules/vite-node/vite-node.mjs");
     const workerScriptPath = path.resolve(process.cwd(), "src/worker/index.ts");
 

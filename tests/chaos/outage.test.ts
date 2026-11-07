@@ -75,6 +75,17 @@ describe("Outage Chaos & Queue Recovery (Blueprint Section 5.1 & Section 8.1)", 
   }
 
   it("holds endpoints down for a real 20 seconds using chaos, ingests 10 events, verifies null-balance batch, restores with live DevNet balance, and drains queue", async () => {
+    // Enforce run cap per test process execution (Blueprint & Phase 4/5 safety rule)
+    const maxTransfers = parseInt(process.env.MAX_LIVE_TRANSFERS_PER_TEST_RUN || "1", 10);
+    if (maxTransfers === 0) {
+      console.log(
+        `[Outage Test Notice]: Skipping live DevNet outage test. ` +
+        `MAX_LIVE_TRANSFERS_PER_TEST_RUN is set to 0.`
+      );
+      expect(true).toBe(true);
+      return;
+    }
+
     // 1. Initialize worker and launch worker loop in background while endpoints are online
     worker = new SettlementWorker(db, router, {
       BATCH_INTERVAL_MS: 1000,

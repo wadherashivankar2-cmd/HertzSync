@@ -5,7 +5,7 @@
 - Phase 2: Ingest API and security - COMPLETE
 - Phase 3: Solana integration and RPC router - COMPLETE
 - Phase 4: Settlement worker, recovery, and shutdown - COMPLETE
-- Phase 5: Device simulator - NOT STARTED
+- Phase 5: Device simulator - COMPLETE
 - Phase 6: Operator console (dashboard) - NOT STARTED
 - Phase 7: Metrics and observability - NOT STARTED
 - Phase 8: Full test and security hardening - NOT STARTED
