@@ -49,9 +49,9 @@ export function seed() {
 
   // Payees
   const payee1Id = "payee_charger_site_1";
-  const payee1Address = "83cx4jH4aB7V7tFGr79R1f4zW9mN8b1r2P3q4s5t6u7v";
+  const payee1Address = "25evxBYTgpxRta9DSaWhARHtfqu7aAHf6rtAqp2o8HCr";
   const payee2Id = "payee_charger_site_2";
-  const payee2Address = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU";
+  const payee2Address = "25evxBYTgpxRta9DSaWhARHtfqu7aAHf6rtAqp2o8HCr";
 
   db.prepare(`
     INSERT OR REPLACE INTO payees (id, business_id, label, solana_address, created_at)

@@ -34,6 +34,10 @@
   - Offline buffering: queues events locally and flushes in sequence order
   - Guarded reset: deletes `<id>.state.json` ONLY, preserving `<id>.json`
   - Plain language formatting: "Charger 2 recorded 0.05 SOL session #17"
+- `tests/unit/status-labels.test.ts`: 3 passed / 3 total
+  - Blueprint Section 9.3 internal state mapping to plain English labels, colors, and tooltips
+  - Batch settlement lifecycle states mapping
+  - Unknown state fallback formatting
 
 ## Integration Tests
 - `tests/integration/db.test.ts`: 4 passed / 4 total (WAL mode, busy_timeout=5000, foreign_keys=1, reopen persistence, unique key constraint, concurrent child/parent process writes)
@@ -77,6 +81,11 @@
   - Reset deletes state file only and preserves device identity key file
   - Epoch 2 events accepted with zero 409 conflicts
   - Reusing (epoch 1, seq 1) with different payload produces 409 event_conflict
+- `tests/integration/dashboard-api.test.ts`: 4 passed / 4 total
+  - GET /api/v1/metrics returns complete metrics, endpoint states, and audit log from SQLite only
+  - GET /api/v1/batches returns batches with payee labels and explorer URLs
+  - GET /api/v1/reconciliation returns latest conservation report
+  - POST /api/v1/chaos alters system_state which is immediately reflected in GET /api/v1/metrics
 
 ## Security Tests
 - `tests/security/ingest-security.test.ts`: 5 passed / 5 total
@@ -114,4 +123,4 @@
 ## E2E Tests
 
 ---
-**Total: 96 passed / 96 tests across 30 test suites**
+**Total: 103 passed / 103 tests across 32 test suites**

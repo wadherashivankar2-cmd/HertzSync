@@ -229,7 +229,7 @@ export class DeviceSimulator {
     this.state = loadDeviceState(this.deviceId, this.devicesDir);
 
     // Setup graceful SIGINT handling
-    if (typeof process !== "undefined" && process.on) {
+    if (typeof process !== "undefined" && typeof process.on === "function") {
       process.once("SIGINT", () => {
         this.saveState();
       });

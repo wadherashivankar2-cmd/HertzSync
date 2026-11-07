@@ -40,3 +40,7 @@ This document records the architectural and operational limitations of the Trick
   All 9 transactions sent funds directly to the treasury itself (`25evxBYTgpxRta9DSaWhARHtfqu7aAHf6rtAqp2o8HCr`), incurring net expenses of exactly 5,000 lamports per transaction in network fees (total: 45,000 lamports, reducing treasury balance from 485,800,000 to 485,755,000 lamports).
   The `MAX_LIVE_TRANSFERS_PER_TEST_RUN=0` skip guard is now strictly enforced across `solana-devnet.test.ts`, `crash-midbatch.test.ts`, and `outage.test.ts`, ensuring zero network broadcasts occur when configured for local/mocked execution.
 
+### Phase 6 Demo Database Reset & Counter Transition
+- **Database Reset for Final Demo Run:** Prior to capturing the final operator console verification evidence in Phase 6, `data/trickle.db` was completely reset and re-seeded using `scripts/seed.ts` to establish a clean baseline.
+- **Why Received Events Dropped from 40 to 20:** The previous count of 40 events in `data/trickle.db` included 20 mocked/synthetic rows created during initial UI layout testing. The database reset wiped those synthetic entries. The system was then re-seeded with exactly 20 legitimate Ed25519-signed device events, which were batched and confirmed live on Solana DevNet across two on-chain settlement transactions (signatures `3CLNQ4Lrk...` and `5hC4U8koz...`). Consequently, `Received Events` derived from `SELECT COUNT(*) FROM events` accurately transitioned from the preliminary 40 to the genuine 20 confirmed events.
+
