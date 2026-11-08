@@ -99,27 +99,27 @@ export default function DashboardPage() {
   const deltaReceived = Math.max(0, (metrics?.events_received_total || 0) - initialTotal);
 
   return (
-    <div className="min-h-screen pb-16 transition-colors duration-200">
+    <div className="relative min-h-screen pb-12 transition-colors duration-200 box-border w-full max-w-full overflow-x-hidden">
       {/* Header */}
-      <header className="border-b border-border bg-surface sticky top-0 z-30 transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-text flex items-center gap-2">
+      <header className="border-b border-border bg-surface sticky top-0 z-30 transition-colors duration-200 w-full box-border">
+        <div className="w-full max-w-full px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 box-border">
+          <div className="flex flex-wrap items-center gap-3 min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-text flex items-center gap-2 shrink-0">
               <span className="text-[var(--accent)] font-mono tracking-tighter" aria-hidden="true">
                 ⚡
               </span>
               HertzSync
             </h1>
-            <span className="text-xs text-muted font-normal">Operator Console</span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-bg text-success-text border border-success-border">
+            <span className="text-xs text-muted font-normal shrink-0">Operator Console</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-bg text-success-text border border-success-border shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
               DevNet test network
             </span>
           </div>
 
-          <div className="flex items-center gap-3.5">
+          <div className="flex flex-wrap items-center gap-3.5 shrink-0">
             {/* Live Polling Status Indicator */}
-            <div className="flex items-center gap-2 text-xs text-muted">
+            <div className="flex items-center gap-2 text-xs text-muted shrink-0">
               <span
                 className={`w-2.5 h-2.5 rounded-full transition-colors ${
                   error
@@ -133,7 +133,7 @@ export default function DashboardPage() {
                 }
                 aria-hidden="true"
               />
-              <span className="font-mono text-[11px]">
+              <span className="font-mono text-[11px] whitespace-nowrap">
                 {error ? "Poll Error" : `Live: ${new Date(lastRefreshedAt).toLocaleTimeString()}`}
               </span>
             </div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
             {/* Refresh Button (At least 44px interactive target) */}
             <button
               onClick={fetchDashboardData}
-              className="min-h-[44px] min-w-[44px] px-3.5 py-2 bg-surface hover:bg-surface-hover rounded-lg text-text border border-border text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all"
+              className="min-h-[44px] min-w-[44px] px-3.5 py-2 bg-surface hover:bg-surface-hover rounded-lg text-text border border-border text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all shrink-0"
             >
               Refresh
             </button>
@@ -153,7 +153,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <main className="relative z-10 w-full max-w-full px-6 pt-3 pb-3 space-y-4 box-border min-w-0">
         {/* Error notification banner if polling failed */}
         {error && (
           <div className="p-3 bg-danger-bg border border-danger-border rounded-lg text-xs text-danger-text flex items-center justify-between">
@@ -167,10 +167,10 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Row 1: Four Stat Cards with large tabular numbers, label above, delta below, and real sparkline */}
-        <section aria-label="Key Performance Metrics">
+        {/* Row 1: Four Stat Cards (above the fold) */}
+        <section aria-label="Key Performance Metrics" className="w-full min-w-0">
           <h2 className="sr-only">Key Performance Metrics</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0">
             <MetricCard
               title="Received Events"
               value={metrics?.events_received_total ?? (isLoading ? "..." : 0)}
@@ -221,43 +221,61 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Row 2: Pipeline Flow Diagram */}
-        <section aria-label="Pipeline Architecture Flow">
-          <FlowDiagram
-            chainHealthy={chainHealthy}
-            waitingCount={waitingCount}
-            paidCount={metrics?.events_paid || 0}
-          />
+        {/* Row 2: Pipeline Flow & Reconciliation Proof (above the fold) */}
+        <section
+          aria-label="Settlement Pipeline & Reconciliation"
+          className="grid grid-cols-1 lg:grid-cols-[repeat(2,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0"
+        >
+          <div className="min-w-0 w-full">
+            <FlowDiagram
+              chainHealthy={chainHealthy}
+              waitingCount={waitingCount}
+              paidCount={metrics?.events_paid || 0}
+            />
+          </div>
+          <div className="min-w-0 w-full">
+            <ReconciliationPanel data={reconciliation} />
+          </div>
         </section>
 
-        {/* Row 3: Endpoint Panel & Chaos Controls */}
+        {/* Row 3: Settlement Batches & System Audit Log */}
+        <section
+          aria-label="Settlement Batches & System Audit Log"
+          className="grid grid-cols-1 lg:grid-cols-[repeat(2,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0"
+        >
+          <div className="min-w-0 w-full">
+            <BatchTable batches={batches} isLoading={isLoading} />
+          </div>
+          <div className="min-w-0 w-full">
+            <EventLog logs={auditLogs} />
+          </div>
+        </section>
+
+        {/* Row 4: RPC Infrastructure & Chaos Injection */}
         <section
           aria-label="RPC Infrastructure & Chaos Injection"
-          className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+          className="grid grid-cols-1 lg:grid-cols-[repeat(2,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0"
         >
-          <EndpointPanel endpoints={endpoints} />
-          <ChaosControls
-            endpoints={endpoints}
-            chaosEnabled={chaosEnabled}
-            onRefresh={fetchDashboardData}
-          />
-        </section>
-
-        {/* Row 4: Settlement Batches Table */}
-        <section aria-label="Settlement Batches">
-          <BatchTable batches={batches} isLoading={isLoading} />
-        </section>
-
-        {/* Row 5: Reconciliation Panel */}
-        <section aria-label="Reconciliation Verification">
-          <ReconciliationPanel data={reconciliation} />
-        </section>
-
-        {/* Bottom: Event Log */}
-        <section aria-label="System Event Feed">
-          <EventLog logs={auditLogs} />
+          <div className="min-w-0 w-full">
+            <EndpointPanel endpoints={endpoints} />
+          </div>
+          <div className="min-w-0 w-full">
+            <ChaosControls
+              endpoints={endpoints}
+              chaosEnabled={chaosEnabled}
+              onRefresh={fetchDashboardData}
+            />
+          </div>
         </section>
       </main>
+
+      {/* Role 2: Page bottom background fade behind lowest section that cards do not cover */}
+      <div
+        id="page-bottom-fade"
+        className="absolute inset-x-0 bottom-0 h-[300px] pointer-events-none z-0"
+        aria-hidden="true"
+        style={{ background: "linear-gradient(to top, var(--role2-fade) 0%, transparent 100%)" }}
+      />
     </div>
   );
 }

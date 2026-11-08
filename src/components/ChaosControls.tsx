@@ -64,67 +64,68 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-        <div>
-          <h2 className="text-sm font-semibold text-warning-text uppercase tracking-wider flex items-center gap-2">
-            <span>Chaos & Fault Injection</span>
-            <span className="text-[10px] bg-warning-bg text-warning-text px-2 py-0.5 rounded border border-warning-border">
-              Dev Only
-            </span>
-          </h2>
-          <p className="text-xs text-muted mt-0.5">
-            Controls write directly to SQLite <code className="text-[var(--accent)]">system_state</code> to alter worker RPC router behavior.
-          </p>
+    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg h-full w-full min-w-0 flex flex-col justify-between transition-colors duration-200 box-border">
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 className="text-sm font-semibold text-warning-text uppercase tracking-wider flex items-center gap-2">
+              <span>Chaos & Fault Injection</span>
+              <span className="text-[10px] bg-warning-bg text-warning-text px-2 py-0.5 rounded border border-warning-border">
+                Dev Only
+              </span>
+            </h2>
+            <p className="text-xs text-muted mt-0.5">
+              Controls write directly to SQLite <code className="text-[var(--accent)]">system_state</code> to alter worker RPC router behavior.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="chaos-admin-key" className="text-xs text-muted">
+              Admin Key:
+            </label>
+            <input
+              id="chaos-admin-key"
+              type="password"
+              value={adminKey}
+              onChange={(e) => setAdminKey(e.target.value)}
+              className="min-h-[44px] bg-surface-alt border border-border rounded px-3 py-1.5 text-xs text-text font-mono w-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              placeholder="ADMIN_API_KEY"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label htmlFor="chaos-admin-key" className="text-xs text-muted">
-            Admin Key:
-          </label>
-          <input
-            id="chaos-admin-key"
-            type="password"
-            value={adminKey}
-            onChange={(e) => setAdminKey(e.target.value)}
-            className="min-h-[44px] bg-surface-alt border border-border rounded px-3 py-1.5 text-xs text-text font-mono w-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            placeholder="ADMIN_API_KEY"
-          />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <button
+            onClick={() => applyChaos("down")}
+            disabled={isSubmitting}
+            className="min-h-[44px] px-3.5 py-2.5 bg-danger-bg hover:opacity-90 border border-[var(--accent)] shadow-[0_0_12px_var(--accent-glow)] rounded-lg text-xs font-semibold text-danger-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
+          >
+            Simulate Outage
+          </button>
+
+          <button
+            onClick={() => applyChaos("off")}
+            disabled={isSubmitting}
+            className="min-h-[44px] px-3.5 py-2.5 bg-success-bg hover:opacity-90 border border-[var(--accent)] shadow-[0_0_12px_var(--accent-glow)] rounded-lg text-xs font-semibold text-success-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
+          >
+            Restore Network
+          </button>
+
+          <button
+            onClick={() => applyChaos("lie")}
+            disabled={isSubmitting}
+            className="min-h-[44px] px-3.5 py-2.5 bg-warning-bg hover:opacity-90 border border-[var(--accent)] shadow-[0_0_12px_var(--accent-glow)] rounded-lg text-xs font-semibold text-warning-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
+          >
+            Make one endpoint lie
+          </button>
+
+          <button
+            onClick={() => setShowBurstCommand((prev) => !prev)}
+            className="min-h-[44px] px-3.5 py-2.5 bg-surface-alt hover:bg-surface-hover border border-[var(--accent)] shadow-[0_0_12px_var(--accent-glow)] rounded-lg text-xs font-semibold text-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] text-center flex items-center justify-center"
+          >
+            Burst 1,000 events
+          </button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <button
-          onClick={() => applyChaos("down")}
-          disabled={isSubmitting}
-          className="min-h-[44px] px-3.5 py-2.5 bg-danger-bg hover:opacity-90 border border-danger-border rounded-lg text-xs font-semibold text-danger-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
-        >
-          Simulate Outage
-        </button>
-
-        <button
-          onClick={() => applyChaos("off")}
-          disabled={isSubmitting}
-          style={{ boxShadow: "0 0 20px 0 var(--accent-glow)" }}
-          className="min-h-[44px] px-3.5 py-2.5 bg-success-bg hover:opacity-90 border border-success-border rounded-lg text-xs font-semibold text-success-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
-        >
-          Restore Network
-        </button>
-
-        <button
-          onClick={() => applyChaos("lie")}
-          disabled={isSubmitting}
-          className="min-h-[44px] px-3.5 py-2.5 bg-warning-bg hover:opacity-90 border border-warning-border rounded-lg text-xs font-semibold text-warning-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
-        >
-          Force Lying RPC
-        </button>
-
-        <button
-          onClick={() => setShowBurstCommand((prev) => !prev)}
-          className="min-h-[44px] px-3.5 py-2.5 bg-surface-alt hover:bg-surface-hover border border-border rounded-lg text-xs font-semibold text-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] text-center flex items-center justify-center"
-        >
-          Burst 1,000 CLI
-        </button>
       </div>
 
       {showBurstCommand && (

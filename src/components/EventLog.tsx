@@ -15,8 +15,18 @@ interface EventLogProps {
 }
 
 export function EventLog({ logs }: EventLogProps) {
+  function formatAuditTimeUtc(at: number | string): string {
+    try {
+      const d = new Date(at);
+      if (isNaN(d.getTime())) return "00:00:00 UTC";
+      return d.toISOString().slice(11, 19) + " UTC";
+    } catch {
+      return "00:00:00 UTC";
+    }
+  }
+
   function formatLogPlainLanguage(log: AuditLogItem): string {
-    const time = new Date(log.at).toLocaleTimeString();
+    const time = formatAuditTimeUtc(log.at);
     switch (log.action) {
       case "new_epoch_registered":
         return `[${time}] Device ${log.detail.deviceId || "unknown"} registered epoch ${log.detail.epoch} (clean reset acknowledged)`;
@@ -38,24 +48,29 @@ export function EventLog({ logs }: EventLogProps) {
   }
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
+    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg h-full w-full min-w-0 flex flex-col justify-between transition-colors duration-200 box-border">
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
             Live System Audit Log
           </h2>
           <p className="text-xs text-muted mt-0.5">
-            Immutable SQLite audit entries in plain English
+            Immutable SQLite audit entries in plain English (UTC)
           </p>
         </div>
-        <span className="text-xs text-muted font-mono">{logs.length} latest</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-alt border border-border text-muted font-semibold tracking-wider">
+            UTC
+          </span>
+          <span className="text-xs text-muted font-mono">{logs.length} latest</span>
+        </div>
       </div>
 
       <div
         tabIndex={0}
         role="region"
         aria-label="System audit log feed"
-        className="bg-surface-alt rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-xs text-text divide-y divide-border-subtle border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        className="bg-surface-alt rounded-lg p-3 w-full max-w-full h-[180px] max-h-[180px] overflow-y-auto font-mono text-xs text-text divide-y divide-border-subtle border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
       >
         {logs.length === 0 ? (
           <div className="py-6 text-center text-muted italic">

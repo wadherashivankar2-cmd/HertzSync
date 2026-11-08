@@ -27,8 +27,8 @@ interface BatchTableProps {
 
 export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg h-full w-full min-w-0 flex flex-col justify-between transition-colors duration-200 box-border">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
             Settlement Batches
@@ -46,7 +46,7 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
         tabIndex={0}
         role="region"
         aria-label="Recent settlement batches"
-        className="overflow-x-auto max-h-[420px] rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        className="overflow-x-auto w-full max-w-full h-[180px] max-h-[180px] overflow-y-auto rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
       >
         <table className="w-full text-left border-collapse text-xs">
           <thead className="sticky top-0 bg-surface-alt border-b border-border z-10">

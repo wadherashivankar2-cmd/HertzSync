@@ -51,17 +51,18 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
-          RPC Router Endpoints
-        </h2>
-        <span className="text-xs text-muted font-mono">
-          {endpoints.length} configured
-        </span>
-      </div>
+    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg h-full w-full min-w-0 flex flex-col justify-between transition-colors duration-200 box-border">
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
+            RPC Router Endpoints
+          </h2>
+          <span className="text-xs text-muted font-mono">
+            {endpoints.length} configured
+          </span>
+        </div>
 
-      <div className="space-y-2.5">
+        <div className="space-y-2.5">
         {endpoints.map((ep) => {
           const badge = getBadge(ep);
           let hostname = ep.url;
@@ -95,5 +96,6 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
         })}
       </div>
     </div>
+  </div>
   );
 }

@@ -40,11 +40,12 @@ export default function RootLayout({
       <body className="antialiased min-h-screen bg-bg text-text selection:bg-[var(--accent)] selection:text-[var(--accent-text)]">
         {/* Role 2 decorative background fade: covers bottom 28% of viewport, pointer-events none */}
         <div
+          id="role2-fade"
           className="fixed inset-x-0 bottom-0 h-[28vh] pointer-events-none z-0"
           aria-hidden="true"
           style={{ background: "linear-gradient(to top, var(--role2-fade), transparent)" }}
         />
-        <div className="relative z-10">{children}</div>
+        <div className="relative z-10 box-border w-full max-w-full">{children}</div>
       </body>
     </html>
   );

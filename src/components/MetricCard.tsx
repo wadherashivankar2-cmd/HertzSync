@@ -34,7 +34,7 @@ export function MetricCard({
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg flex flex-col justify-between transition-colors duration-200">
+    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg flex flex-col justify-between transition-colors duration-200 h-full w-full min-w-0 box-border">
       <div>
         <div className="flex items-center justify-between gap-2 mb-2.5">
           <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">{title}</h3>

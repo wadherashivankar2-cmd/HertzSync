@@ -97,6 +97,19 @@
   --foreground: var(--text);
 }
 
+html,
+body {
+  box-sizing: border-box;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
 body {
   color: var(--foreground);
   background-color: var(--background);
@@ -125,12 +138,14 @@ a {
   transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
 }
 
-/* Buttons lift on hover */
+/* Buttons lift on hover with Role 3 minimal coral accent glow */
 .btn-lift {
+  box-shadow: 0 0 16px 0 var(--accent-glow);
   transition: transform 150ms ease, background-color 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
 .btn-lift:hover {
   transform: translateY(-1px);
+  box-shadow: 0 0 22px 0 var(--accent-glow);
 }
 
 /* Role 3 focus ring across interactive elements */

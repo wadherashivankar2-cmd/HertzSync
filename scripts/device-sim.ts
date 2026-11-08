@@ -4,9 +4,10 @@ import nacl from "tweetnacl";
 import { canonicalizeEventPayload, CanonicalEventPayload } from "../src/lib/canonical";
 
 export interface DeviceKeyFile {
-  id: string;
+  id?: string;
+  deviceId?: string;
   publicKey: string; // base64
-  secretKey: number[]; // 64-byte Uint8Array as array
+  secretKey: number[] | string; // 64-byte Uint8Array as array or base64 string
 }
 
 export interface DeviceState {
@@ -43,8 +44,15 @@ export function loadOrCreateDeviceKey(
   if (fs.existsSync(keyFilePath)) {
     try {
       const data: DeviceKeyFile = JSON.parse(fs.readFileSync(keyFilePath, "utf8"));
-      if (data && Array.isArray(data.secretKey) && data.secretKey.length === 64) {
-        return nacl.sign.keyPair.fromSecretKey(new Uint8Array(data.secretKey));
+      if (data) {
+        if (typeof data.secretKey === "string") {
+          const secretBytes = Buffer.from(data.secretKey, "base64");
+          if (secretBytes.length === 64) {
+            return nacl.sign.keyPair.fromSecretKey(new Uint8Array(secretBytes));
+          }
+        } else if (Array.isArray(data.secretKey) && data.secretKey.length === 64) {
+          return nacl.sign.keyPair.fromSecretKey(new Uint8Array(data.secretKey));
+        }
       }
     } catch {}
   }
@@ -224,7 +232,7 @@ export class DeviceSimulator {
     this.deviceId = deviceId;
     this.label = label || deviceId;
     this.devicesDir = options?.devicesDir || path.resolve(process.cwd(), "keys", "devices");
-    this.businessId = options?.businessId || "biz_01";
+    this.businessId = options?.businessId || "biz_demo_01";
     this.keypair = loadOrCreateDeviceKey(this.deviceId, this.devicesDir);
     this.state = loadDeviceState(this.deviceId, this.devicesDir);
 
@@ -345,7 +353,12 @@ export class DeviceSimulator {
 }
 
 // CLI runner if executed directly via node/vite-node/tsx
-if (!process.env.VITEST) {
+const isMain =
+  typeof process !== "undefined" &&
+  Boolean(process.argv[1]) &&
+  (process.argv[1].endsWith("device-sim.ts") || process.argv[1].endsWith("device-sim.js"));
+
+if (!process.env.VITEST && isMain) {
   const args = process.argv.slice(2);
   const mode = args.find((a) => a.startsWith("--mode="))?.split("=")[1] || "normal";
   const count = parseInt(args.find((a) => a.startsWith("--count="))?.split("=")[1] || "30", 10);
