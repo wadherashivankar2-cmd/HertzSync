@@ -34,7 +34,7 @@ export function ThemeSwitcher() {
   if (!mounted) {
     return (
       <div className="flex items-center gap-2 shrink-0">
-        <span id="theme-control-label" className="text-xs font-semibold text-muted tracking-wide uppercase text-[11px]">
+        <span id="theme-control-label" className="sr-only">
           Theme
         </span>
         <div
@@ -63,7 +63,7 @@ export function ThemeSwitcher() {
 
   return (
     <div className="flex items-center gap-2 shrink-0">
-      <span id="theme-control-label" className="text-xs font-semibold text-muted tracking-wide uppercase text-[11px]">
+      <span id="theme-control-label" className="sr-only">
         Theme
       </span>
       <div
@@ -87,9 +87,9 @@ export function ThemeSwitcher() {
           type="button"
           aria-pressed={theme === "light"}
           onClick={() => selectTheme("light")}
-          className={`min-h-[44px] min-w-[64px] px-3.5 py-1.5 rounded-md text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all ${
+          className={`min-h-[44px] min-w-[64px] px-3.5 py-1.5 rounded-md text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text transition-all ${
             theme === "light"
-              ? "bg-[var(--accent)] text-[var(--accent-text)] font-bold border border-[var(--accent)] shadow-[0_0_12px_var(--accent-glow)]"
+              ? "bg-surface text-text font-bold shadow-sm border border-border"
               : "text-muted hover:text-text border border-transparent"
           }`}
         >

@@ -75,7 +75,7 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
               </span>
             </h2>
             <p className="text-xs text-muted mt-0.5">
-              Controls write directly to SQLite <code className="text-[var(--accent)]">system_state</code> to alter worker RPC router behavior.
+              Controls write directly to SQLite <code className="text-info-text">system_state</code> to alter worker RPC router behavior.
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
       {showBurstCommand && (
         <div className="mt-3 p-3 bg-surface-alt border border-border rounded-lg text-xs font-mono text-text">
           <div className="text-[11px] text-muted mb-1">Run in a separate terminal:</div>
-          <code className="text-[var(--accent)] break-all select-all">
+          <code className="text-info-text break-all select-all">
             npm run sim -- --mode=burst --count=1000 --interval=0
           </code>
         </div>

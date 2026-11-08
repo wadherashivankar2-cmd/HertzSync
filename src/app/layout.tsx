@@ -38,10 +38,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen bg-bg text-text selection:bg-[var(--accent)] selection:text-[var(--accent-text)]">
-        {/* Role 2 decorative background fade: covers bottom 28% of viewport, pointer-events none */}
+        {/* Role 2 decorative background fade: covers bottom 200px of viewport, pointer-events none */}
         <div
           id="role2-fade"
-          className="fixed inset-x-0 bottom-0 h-[28vh] pointer-events-none z-0"
+          className="fixed inset-x-0 bottom-0 h-[200px] pointer-events-none z-0"
           aria-hidden="true"
           style={{ background: "linear-gradient(to top, var(--role2-fade), transparent)" }}
         />

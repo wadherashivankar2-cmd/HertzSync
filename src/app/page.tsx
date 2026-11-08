@@ -101,11 +101,14 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-screen pb-12 transition-colors duration-200 box-border w-full max-w-full overflow-x-hidden">
       {/* Header */}
-      <header className="border-b border-border bg-surface sticky top-0 z-30 transition-colors duration-200 w-full box-border">
+      <header
+        className="border-b border-border sticky top-0 z-30 transition-colors duration-200 w-full box-border"
+        style={{ background: "linear-gradient(to right, rgba(27, 42, 107, 0.35) 0%, rgba(27, 42, 107, 0.15) 50%, transparent 100%), var(--surface)" }}
+      >
         <div className="w-full max-w-full px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 box-border">
           <div className="flex flex-wrap items-center gap-3 min-w-0">
             <h1 className="text-xl font-bold tracking-tight text-text flex items-center gap-2 shrink-0">
-              <span className="text-[var(--accent)] font-mono tracking-tighter" aria-hidden="true">
+              <span className="text-amber-400 font-mono tracking-tighter" aria-hidden="true">
                 ⚡
               </span>
               HertzSync
@@ -124,12 +127,12 @@ export default function DashboardPage() {
                 className={`w-2.5 h-2.5 rounded-full transition-colors ${
                   error
                     ? "bg-rose-500"
-                    : "bg-[var(--accent)]"
+                    : "bg-emerald-400"
                 }`}
                 style={
                   error
                     ? undefined
-                    : { boxShadow: "0 0 12px var(--accent-glow)" }
+                    : { boxShadow: "0 0 10px rgba(52, 211, 153, 0.4)" }
                 }
                 aria-hidden="true"
               />
@@ -141,7 +144,7 @@ export default function DashboardPage() {
             {/* Refresh Button (At least 44px interactive target) */}
             <button
               onClick={fetchDashboardData}
-              className="min-h-[44px] min-w-[44px] px-3.5 py-2 bg-surface hover:bg-surface-hover rounded-lg text-text border border-border text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all shrink-0"
+              className="min-h-[44px] min-w-[44px] px-3.5 py-2 bg-surface hover:bg-surface-hover rounded-lg text-text border border-border text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text transition-all shrink-0"
             >
               Refresh
             </button>
@@ -180,7 +183,7 @@ export default function DashboardPage() {
                 </span>
               }
               sparklineData={receivedHistory.length > 0 ? receivedHistory : [metrics?.events_received_total || 0]}
-              sparklineColor="var(--accent)"
+              sparklineColor="var(--info-text)"
               badge={{ text: "Total Ingest", variant: "neutral" }}
             />
             <MetricCard
@@ -269,12 +272,12 @@ export default function DashboardPage() {
         </section>
       </main>
 
-      {/* Role 2: Page bottom background fade behind lowest section that cards do not cover */}
+      {/* Role 2: Subtle blue gradient band (#1B2A6B fading to transparent) across the bottom 200px of the page */}
       <div
         id="page-bottom-fade"
-        className="absolute inset-x-0 bottom-0 h-[300px] pointer-events-none z-0"
+        className="absolute inset-x-0 bottom-0 h-[200px] pointer-events-none z-0"
         aria-hidden="true"
-        style={{ background: "linear-gradient(to top, var(--role2-fade) 0%, transparent 100%)" }}
+        style={{ background: "linear-gradient(to top, rgba(27, 42, 107, 0.35) 0%, transparent 100%)" }}
       />
     </div>
   );

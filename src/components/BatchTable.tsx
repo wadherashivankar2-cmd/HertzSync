@@ -110,7 +110,7 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
                         href={batch.explorerUrl || `https://explorer.solana.com/tx/${batch.signature}?cluster=devnet`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded p-1"
+                        className="inline-flex items-center gap-1 text-info-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info-text rounded p-1 font-mono"
                       >
                         <span>{batch.signature.slice(0, 6)}...{batch.signature.slice(-4)}</span>
                         <span aria-hidden="true">↗</span>
