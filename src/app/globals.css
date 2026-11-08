@@ -216,3 +216,6 @@ nextjs-portal,
 .nextjs-toast-errors-parent {
   display: none !important;
 }
+
+nextjs-portal, [data-nextjs-toast], [data-nextjs-dev-tools-button], [data-nextjs-dialog-overlay] { display: none !important; }
+
