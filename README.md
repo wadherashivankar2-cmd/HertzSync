@@ -52,6 +52,9 @@ Clone the repository and install dependencies:
 npm install
 ```
 
+> [!NOTE]
+> `npm install` reports critical findings in development tooling (`vitest@2.1.9` and `tinypool@1.1.1`). These packages are excluded by `npm install --omit=dev` and are not part of the production runtime. `npm audit --omit=dev` reports 0 critical and 6 findings (5 moderate, 1 high) in runtime dependencies. The high finding is an approved exception for postcss inside `next@15.5.29` (build-time CSS only). See [SECURITY.md](SECURITY.md) for the full threat assessment.
+
 Copy the example environment configuration to `.env.local`:
 - **macOS / Linux:**
   ```bash
@@ -97,6 +100,8 @@ npm run worker
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Run `npm run sim` for a few seconds, then refresh the dashboard at http://localhost:3000 to see live events and settlement. A fresh clone starts with 0 events by design.
 
 ### 6. Start Device Simulator
 **Terminal 3 — Device Traffic:**
