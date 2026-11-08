@@ -8,11 +8,11 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "keygen": "vite-node scripts/keygen.ts",
-    "seed": "vite-node scripts/seed.ts",
-    "worker": "vite-node src/worker/index.ts",
-    "sim": "vite-node scripts/device-sim.ts",
-    "report": "vite-node scripts/report.ts"
+    "keygen": "vite-node --script scripts/keygen.ts",
+    "seed": "vite-node --script scripts/seed.ts",
+    "worker": "vite-node --script src/worker/index.ts",
+    "sim": "vite-node --script scripts/device-sim.ts",
+    "report": "vite-node --script scripts/report.ts"
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.0",
