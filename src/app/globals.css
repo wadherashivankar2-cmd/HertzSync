@@ -16,18 +16,24 @@
   --accent-glow: rgba(255, 138, 76, 0.15);
   --accent-text: #0A0F1F;
 
-  /* Surfaces & Borders (cards and panels keep solid surfaces) */
-  --surface: #131B35;
-  --surface-hover: #192345;
-  --surface-alt: #0D1429;
-  --border: #222F5A;
-  --border-subtle: #182244;
+  /* Blue accent #1B2A6B for section headers and reconciliation card border */
+  --blue-accent: #1B2A6B;
+  --section-header-bg: rgba(27, 42, 107, 0.40);
+  --section-header-border: #1B2A6B;
+  --recon-border: #1B2A6B;
+
+  /* Surfaces & Borders (cards: #111A33 with 1px border #1E2A4A) */
+  --surface: #111A33;
+  --surface-hover: #162242;
+  --surface-alt: #0D152A;
+  --border: #1E2A4A;
+  --border-subtle: #16203B;
 
   /* Text: #F1F5F9 (primary), #94A3B8 (muted) */
   --text: #F1F5F9;
   --muted: #94A3B8;
 
-  /* Status Colors (High contrast WCAG AAA) */
+  /* Status Colors (High contrast WCAG AAA): Paid green, Waiting amber, Review red */
   --success-text: #6EE7B7;
   --success-bg: rgba(16, 185, 129, 0.12);
   --success-border: rgba(16, 185, 129, 0.35);
@@ -59,23 +65,29 @@
   /* Role 2 fade: #C9D3F5 at about 40% opacity */
   --role2-fade: rgba(201, 211, 245, 0.40);
 
-  /* Role 3 accent: #C2410C (darker coral, for contrast on white) */
+  /* Role 3 accent: #C2410C (darker coral for contrast on white) */
   --accent: #C2410C;
   --accent-glow: rgba(194, 65, 12, 0.15);
   --accent-text: #FFFFFF;
 
-  /* Surfaces & Borders (solid white surfaces so numbers stay on solid colour) */
+  /* Blue accent #C9D3F5 for section headers and reconciliation card border */
+  --blue-accent: #C9D3F5;
+  --section-header-bg: rgba(201, 211, 245, 0.45);
+  --section-header-border: #C9D3F5;
+  --recon-border: #C9D3F5;
+
+  /* Surfaces & Borders (cards: #FFFFFF with 1px border #E2E8F0) */
   --surface: #FFFFFF;
   --surface-hover: #F8FAFC;
-  --surface-alt: #EDF2F9;
-  --border: #CBD5E1;
-  --border-subtle: #E2E8F0;
+  --surface-alt: #F1F5F9;
+  --border: #E2E8F0;
+  --border-subtle: #EDF2F7;
 
   /* Text: #0F172A (primary), #475569 (muted) */
   --text: #0F172A;
   --muted: #475569;
 
-  /* Status Colors (High contrast WCAG AAA) */
+  /* Status Colors (High contrast WCAG AAA): Paid green, Waiting amber, Review red */
   --success-text: #065F46;
   --success-bg: rgba(5, 150, 105, 0.10);
   --success-border: rgba(5, 150, 105, 0.35);
@@ -114,6 +126,8 @@ body {
   color: var(--foreground);
   background-color: var(--background);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.5;
   min-height: 100vh;
 }
 
@@ -191,4 +205,14 @@ code, kbd, samp, pre, .font-mono {
     transform: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Remove Next.js dev badge / overlay from recording view */
+nextjs-portal,
+[data-nextjs-dev-tools-button],
+[data-nextjs-toast],
+[data-nextjs-toast-wrapper],
+#__next-build-watcher,
+.nextjs-toast-errors-parent {
+  display: none !important;
 }

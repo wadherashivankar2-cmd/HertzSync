@@ -48,10 +48,11 @@ export function EventLog({ logs }: EventLogProps) {
   }
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg h-full w-full min-w-0 flex flex-col justify-between transition-colors duration-200 box-border">
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-surface border border-border rounded-xl shadow-lg w-full min-w-0 flex flex-col transition-colors duration-200 box-border overflow-hidden h-full">
+      <div className="px-5 py-3.5 bg-[var(--section-header-bg)] border-b border-border flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[var(--blue-accent)]" aria-hidden="true" />
             Live System Audit Log
           </h2>
           <p className="text-xs text-muted mt-0.5">
@@ -59,44 +60,46 @@ export function EventLog({ logs }: EventLogProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-alt border border-border text-muted font-semibold tracking-wider">
+          <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface border border-border text-muted font-semibold tracking-wider">
             UTC
           </span>
           <span className="text-xs text-muted font-mono">{logs.length} latest</span>
         </div>
       </div>
 
-      <div
-        tabIndex={0}
-        role="region"
-        aria-label="System audit log feed"
-        className="bg-surface-alt rounded-lg p-3 w-full max-w-full h-[180px] max-h-[180px] overflow-y-auto font-mono text-xs text-text divide-y divide-border-subtle border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-      >
-        {logs.length === 0 ? (
-          <div className="py-6 text-center text-muted italic">
-            No audit log entries recorded yet.
-          </div>
-        ) : (
-          logs.map((log) => {
-            const isError =
-              log.action.includes("conflict") ||
-              log.action.includes("rejected") ||
-              log.action.includes("forbidden") ||
-              log.action.includes("failed");
+      <div className="p-5">
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="System audit log feed"
+          className="bg-surface-alt rounded-lg p-3.5 w-full max-w-full max-h-[340px] overflow-y-auto font-mono text-[1.125rem] text-text divide-y divide-border-subtle border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        >
+          {logs.length === 0 ? (
+            <div className="py-8 text-center text-muted italic text-[1.125rem]">
+              No audit log entries recorded yet.
+            </div>
+          ) : (
+            logs.map((log) => {
+              const isError =
+                log.action.includes("conflict") ||
+                log.action.includes("rejected") ||
+                log.action.includes("forbidden") ||
+                log.action.includes("failed");
 
-            return (
-              <div
-                key={log.id}
-                className={`py-1.5 px-1 flex items-start gap-2 ${
-                  isError ? "text-rose-600 dark:text-rose-300" : "text-text"
-                }`}
-              >
-                <span className="text-muted text-[11px] select-none shrink-0">#{log.id}</span>
-                <span className="break-all">{formatLogPlainLanguage(log)}</span>
-              </div>
-            );
-          })
-        )}
+              return (
+                <div
+                  key={log.id}
+                  className={`py-2 px-1.5 flex items-start gap-2.5 ${
+                    isError ? "text-rose-600 dark:text-rose-300" : "text-text"
+                  }`}
+                >
+                  <span className="text-muted text-xs select-none shrink-0 mt-0.5">#{log.id}</span>
+                  <span className="break-all leading-relaxed text-[1.125rem]">{formatLogPlainLanguage(log)}</span>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

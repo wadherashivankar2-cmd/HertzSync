@@ -34,13 +34,13 @@ export function MetricCard({
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg flex flex-col justify-between transition-colors duration-200 h-full w-full min-w-0 box-border">
+    <div className="bg-surface border border-border rounded-xl p-5 sm:p-6 shadow-lg flex flex-col justify-between transition-colors duration-200 h-full w-full min-w-0 box-border">
       <div>
-        <div className="flex items-center justify-between gap-2 mb-2.5">
-          <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">{title}</h3>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <h3 className="text-[1rem] font-semibold text-muted uppercase tracking-wider">{title}</h3>
           {badge && (
             <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${badgeClasses[badge.variant]}`}
+              className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium border ${badgeClasses[badge.variant]}`}
             >
               {badge.text}
             </span>
@@ -48,7 +48,7 @@ export function MetricCard({
         </div>
 
         <div className="flex items-baseline justify-between gap-3 mt-1">
-          <div className="text-2xl sm:text-3xl font-bold text-text tracking-tight">
+          <div className="text-[3.5rem] font-bold text-text tracking-tight leading-none tabular-nums">
             <AnimatedNumber value={value} />
           </div>
           {sparklineData && sparklineData.length > 0 && (
@@ -59,7 +59,7 @@ export function MetricCard({
         </div>
       </div>
 
-      <div className="mt-3 pt-2.5 border-t border-border-subtle text-xs text-muted">
+      <div className="mt-4 pt-3 border-t border-border-subtle text-[1rem] text-muted">
         {deltaLine || subtitle}
       </div>
     </div>

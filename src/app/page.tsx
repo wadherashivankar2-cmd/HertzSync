@@ -99,13 +99,12 @@ export default function DashboardPage() {
   const deltaReceived = Math.max(0, (metrics?.events_received_total || 0) - initialTotal);
 
   return (
-    <div className="relative min-h-screen pb-12 transition-colors duration-200 box-border w-full max-w-full overflow-x-hidden">
+    <div className="relative pb-6 transition-colors duration-200 box-border w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <header
-        className="border-b border-border sticky top-0 z-30 transition-colors duration-200 w-full box-border"
-        style={{ background: "linear-gradient(to right, rgba(27, 42, 107, 0.35) 0%, rgba(27, 42, 107, 0.15) 50%, transparent 100%), var(--surface)" }}
+        className="border-b border-border sticky top-0 z-30 transition-colors duration-200 w-full box-border bg-surface"
       >
-        <div className="w-full max-w-full px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 box-border">
+        <div className="w-full px-8 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 box-border">
           <div className="flex flex-wrap items-center gap-3 min-w-0">
             <h1 className="text-xl font-bold tracking-tight text-text flex items-center gap-2 shrink-0">
               <span className="text-amber-400 font-mono tracking-tighter" aria-hidden="true">
@@ -136,7 +135,7 @@ export default function DashboardPage() {
                 }
                 aria-hidden="true"
               />
-              <span className="font-mono text-[11px] whitespace-nowrap">
+              <span className="font-mono text-xs whitespace-nowrap">
                 {error ? "Poll Error" : `Live: ${new Date(lastRefreshedAt).toLocaleTimeString()}`}
               </span>
             </div>
@@ -155,130 +154,116 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="relative z-10 w-full max-w-full px-6 pt-3 pb-3 space-y-4 box-border min-w-0">
+      {/* Main Container: Full viewport width, 32px side padding (px-8), 2-column grid on wide screens (>=900px), 1 col under 900px */}
+      <main className="relative z-10 w-full px-8 pt-6 pb-6 grid grid-cols-1 min-[900px]:grid-cols-2 gap-6 box-border min-w-0">
         {/* Error notification banner if polling failed */}
         {error && (
-          <div className="p-3 bg-danger-bg border border-danger-border rounded-lg text-xs text-danger-text flex items-center justify-between">
+          <div className="col-span-1 min-[900px]:col-span-2 p-3.5 bg-danger-bg border border-danger-border rounded-lg text-xs text-danger-text flex items-center justify-between">
             <span>Notice: {error} (Reading from SQLite)</span>
             <button
               onClick={fetchDashboardData}
-              className="underline ml-2 min-h-[44px] px-2 py-1"
+              className="underline ml-2 min-h-[44px] px-2 py-1 font-semibold"
             >
               Retry
             </button>
           </div>
         )}
 
-        {/* Row 1: Four Stat Cards (above the fold) */}
-        <section aria-label="Key Performance Metrics" className="w-full min-w-0">
-          <h2 className="sr-only">Key Performance Metrics</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0">
-            <MetricCard
-              title="Received Events"
-              value={metrics?.events_received_total ?? (isLoading ? "..." : 0)}
-              deltaLine={
-                <span>
-                  Delta: <span className="font-semibold text-text">+{deltaReceived}</span> this session
-                </span>
-              }
-              sparklineData={receivedHistory.length > 0 ? receivedHistory : [metrics?.events_received_total || 0]}
-              sparklineColor="var(--info-text)"
-              badge={{ text: "Total Ingest", variant: "neutral" }}
-            />
-            <MetricCard
-              title="Waiting to be Paid"
-              value={waitingCount}
-              deltaLine={<span>SQLite WAL queue · unbatched</span>}
-              sparklineData={waitingHistory.length > 0 ? waitingHistory : [waitingCount]}
-              sparklineColor="var(--pending)"
-              badge={{
-                text: waitingCount > 0 ? "Queued" : "Drained",
-                variant: waitingCount > 0 ? "warning" : "success",
-              }}
-            />
-            <MetricCard
-              title="Paid on Solana"
-              value={metrics?.events_paid ?? (isLoading ? "..." : 0)}
-              deltaLine={
-                <span>
-                  Settled: <span className="font-semibold text-text">{batches.length}</span> batches
-                </span>
-              }
-              sparklineData={paidSparklineData}
-              sparklineColor="var(--success)"
-              badge={{ text: "On-Chain", variant: "success" }}
-            />
-            <MetricCard
-              title="Lost Events"
-              value={metrics?.events_lost ?? 0}
-              deltaLine={
-                reconciliation?.runAt
-                  ? `Last reconciled: ${new Date(reconciliation.runAt).toLocaleTimeString()}`
-                  : "Last reconciled: pending"
-              }
-              sparklineData={[0, 0, 0, 0]}
-              sparklineColor="var(--success)"
-              badge={{ text: "✓ Zero Lost", variant: "success" }}
-            />
-          </div>
+        {/* 1. Metric Cards (2x2 grid on wide screens) */}
+        <div className="w-full min-w-0 h-full">
+          <MetricCard
+            title="Received Events"
+            value={metrics?.events_received_total ?? (isLoading ? "..." : 0)}
+            deltaLine={
+              <span>
+                Delta: <span className="font-semibold text-text">+{deltaReceived}</span> this session
+              </span>
+            }
+            sparklineData={receivedHistory.length > 0 ? receivedHistory : [metrics?.events_received_total || 0]}
+            sparklineColor="var(--info-text)"
+            badge={{ text: "Total Ingest", variant: "neutral" }}
+          />
+        </div>
+        <div className="w-full min-w-0 h-full">
+          <MetricCard
+            title="Waiting to be Paid"
+            value={waitingCount}
+            deltaLine={<span>SQLite WAL queue · unbatched</span>}
+            sparklineData={waitingHistory.length > 0 ? waitingHistory : [waitingCount]}
+            sparklineColor="var(--pending)"
+            badge={{
+              text: waitingCount > 0 ? "Queued" : "Drained",
+              variant: waitingCount > 0 ? "warning" : "success",
+            }}
+          />
+        </div>
+        <div className="w-full min-w-0 h-full">
+          <MetricCard
+            title="Paid on Solana"
+            value={metrics?.events_paid ?? (isLoading ? "..." : 0)}
+            deltaLine={
+              <span>
+                Settled: <span className="font-semibold text-text">{batches.length}</span> batches
+              </span>
+            }
+            sparklineData={paidSparklineData}
+            sparklineColor="var(--success)"
+            badge={{ text: "On-Chain", variant: "success" }}
+          />
+        </div>
+        <div className="w-full min-w-0 h-full">
+          <MetricCard
+            title="Lost Events"
+            value={metrics?.events_lost ?? 0}
+            deltaLine={
+              reconciliation?.runAt
+                ? `Last reconciled: ${new Date(reconciliation.runAt).toLocaleTimeString()}`
+                : "Last reconciled: pending"
+            }
+            sparklineData={[0, 0, 0, 0]}
+            sparklineColor="var(--success)"
+            badge={{ text: "✓ Zero Lost", variant: "success" }}
+          />
+        </div>
+
+        {/* 2. Settlement Pipeline */}
+        <section aria-label="Settlement Pipeline Flow" className="w-full min-w-0 h-full">
+          <FlowDiagram
+            chainHealthy={chainHealthy}
+            waitingCount={waitingCount}
+            paidCount={metrics?.events_paid || 0}
+          />
         </section>
 
-        {/* Row 2: Pipeline Flow & Reconciliation Proof (above the fold) */}
-        <section
-          aria-label="Settlement Pipeline & Reconciliation"
-          className="grid grid-cols-1 lg:grid-cols-[repeat(2,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0"
-        >
-          <div className="min-w-0 w-full">
-            <FlowDiagram
-              chainHealthy={chainHealthy}
-              waitingCount={waitingCount}
-              paidCount={metrics?.events_paid || 0}
-            />
-          </div>
-          <div className="min-w-0 w-full">
-            <ReconciliationPanel data={reconciliation} />
-          </div>
+        {/* 3. Reconciliation Proof */}
+        <section aria-label="Reconciliation & Conservation Proof" className="w-full min-w-0 h-full">
+          <ReconciliationPanel data={reconciliation} />
         </section>
 
-        {/* Row 3: Settlement Batches & System Audit Log */}
-        <section
-          aria-label="Settlement Batches & System Audit Log"
-          className="grid grid-cols-1 lg:grid-cols-[repeat(2,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0"
-        >
-          <div className="min-w-0 w-full">
-            <BatchTable batches={batches} isLoading={isLoading} />
-          </div>
-          <div className="min-w-0 w-full">
-            <EventLog logs={auditLogs} />
-          </div>
+        {/* 4. Settlement Batches */}
+        <section aria-label="Settlement Batches" className="w-full min-w-0 h-full">
+          <BatchTable batches={batches} isLoading={isLoading} />
         </section>
 
-        {/* Row 4: RPC Infrastructure & Chaos Injection */}
-        <section
-          aria-label="RPC Infrastructure & Chaos Injection"
-          className="grid grid-cols-1 lg:grid-cols-[repeat(2,minmax(0,1fr))] gap-4 items-stretch w-full min-w-0"
-        >
-          <div className="min-w-0 w-full">
-            <EndpointPanel endpoints={endpoints} />
-          </div>
-          <div className="min-w-0 w-full">
-            <ChaosControls
-              endpoints={endpoints}
-              chaosEnabled={chaosEnabled}
-              onRefresh={fetchDashboardData}
-            />
-          </div>
+        {/* 5. Live System Audit Log */}
+        <section aria-label="Live System Audit Log" className="w-full min-w-0 h-full">
+          <EventLog logs={auditLogs} />
+        </section>
+
+        {/* 6. RPC Router Endpoints */}
+        <section aria-label="RPC Router Endpoints" className="w-full min-w-0 h-full">
+          <EndpointPanel endpoints={endpoints} />
+        </section>
+
+        {/* 7. Chaos Controls */}
+        <section aria-label="Chaos & Fault Injection" className="w-full min-w-0 h-full">
+          <ChaosControls
+            endpoints={endpoints}
+            chaosEnabled={chaosEnabled}
+            onRefresh={fetchDashboardData}
+          />
         </section>
       </main>
-
-      {/* Role 2: Subtle blue gradient band (#1B2A6B fading to transparent) across the bottom 200px of the page */}
-      <div
-        id="page-bottom-fade"
-        className="absolute inset-x-0 bottom-0 h-[200px] pointer-events-none z-0"
-        aria-hidden="true"
-        style={{ background: "linear-gradient(to top, rgba(27, 42, 107, 0.35) 0%, transparent 100%)" }}
-      />
     </div>
   );
 }

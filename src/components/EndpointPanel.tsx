@@ -51,51 +51,57 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-4 shadow-lg h-full w-full min-w-0 flex flex-col justify-between transition-colors duration-200 box-border">
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
+    <div className="bg-surface border border-border rounded-xl shadow-lg w-full min-w-0 flex flex-col transition-colors duration-200 box-border overflow-hidden h-full">
+      <div className="px-5 py-3.5 bg-[var(--section-header-bg)] border-b border-border flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[var(--blue-accent)]" aria-hidden="true" />
             RPC Router Endpoints
           </h2>
-          <span className="text-xs text-muted font-mono">
-            {endpoints.length} configured
-          </span>
+          <p className="text-xs text-muted mt-0.5">
+            Circuit breakers and health status for Solana DevNet RPCs
+          </p>
         </div>
+        <span className="text-xs text-muted font-mono">
+          {endpoints.length} configured
+        </span>
+      </div>
 
-        <div className="space-y-2.5">
-        {endpoints.map((ep) => {
-          const badge = getBadge(ep);
-          let hostname = ep.url;
-          try {
-            hostname = new URL(ep.url).hostname;
-          } catch {}
+      <div className="p-5">
+        <div className="space-y-3">
+          {endpoints.map((ep) => {
+            const badge = getBadge(ep);
+            let hostname = ep.url;
+            try {
+              hostname = new URL(ep.url).hostname;
+            } catch {}
 
-          return (
-            <div
-              key={ep.url}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-surface-alt border border-border rounded-lg gap-2 transition-colors duration-200"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-mono text-text truncate" title={ep.url}>
-                  {ep.url}
+            return (
+              <div
+                key={ep.url}
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-surface-alt border border-border rounded-lg gap-2 transition-colors duration-200"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-[14px] font-mono text-text truncate" title={ep.url}>
+                    {ep.url}
+                  </div>
+                  <div className="text-xs text-muted mt-1">
+                    Host: {hostname} {ep.failures > 0 ? `| Failures: ${ep.failures}` : ""}
+                  </div>
                 </div>
-                <div className="text-[11px] text-muted mt-0.5">
-                  Host: {hostname} {ep.failures > 0 ? `| Failures: ${ep.failures}` : ""}
+                <div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${badge.className}`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                    {badge.label}
+                  </span>
                 </div>
               </div>
-              <div>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border ${badge.className}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
-                  {badge.label}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
-  </div>
   );
 }
