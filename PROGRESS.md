@@ -7,7 +7,7 @@
 - Phase 4: Settlement worker, recovery, and shutdown - COMPLETE
 - Phase 5: Device simulator - COMPLETE
 - Phase 6: Operator console (dashboard) - COMPLETE
-- Phase 7: Metrics and observability - IN REVIEW (all tests passing, report CLI verified, awaiting gate review)
-- Phase 8: Full test and security hardening - NOT STARTED
+- Phase 7: Metrics and observability - COMPLETE
+- Phase 8: Full test and security hardening - IN REVIEW (3 consecutive suite runs 100% pass, audit verified, S1-S20 verified with documented gaps)
 - Phase 9: Documentation and demo - NOT STARTED
 - Phase 10: Final Definition of Done - NOT STARTED

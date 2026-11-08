@@ -11,32 +11,32 @@ TrickleSettle is a DePIN reliability middleware prototype built for **Solana Dev
 
 | Threat # | Description | Control Mechanism | Status |
 |---|---|---|---|
-| S1 | Replayed event (double counting) | Unique constraint `(device_id, epoch, seq)`; duplicate content returns 200 duplicate, single DB row | Verified by tests (`tests/security/ingest-security.test.ts`) |
-| S2 | Forged event | Ed25519 cryptographic signature verification over canonical payload | Verified by tests (`tests/security/ingest-security.test.ts`) |
+| S1 | Replayed event (double counting) | Unique constraint `(device_id, epoch, seq)`; duplicate content returns 200 duplicate, single DB row | Verified by tests (`tests/security/ingest-security.test.ts`, `tests/integration/ingest.test.ts`) |
+| S2 | Forged event | Ed25519 cryptographic signature verification over canonical payload | Verified by tests (`tests/security/ingest-security.test.ts`, `tests/unit/crypto.test.ts`, `tests/integration/ingest.test.ts`) |
 | S3 | Device ownership spoofing | Ownership check ensuring device belongs to authenticated business | Verified by tests (`tests/integration/ingest.test.ts`) |
-| S4 | Mainnet used by accident | DevNet cluster requirement & genesis hash guard in config/router | Pinned & guarded |
-| S5 | Key leakage | Keys only stored in gitignored `keys/` or `.env.local`; logger redacts key patterns | Verified |
-| S6 | Plaintext API keys | Business API keys stored solely as SHA-256 hashes | Verified (`tests/security/ingest-security.test.ts`) |
-| S7 | Oversized or abusive amounts | Max amount per event enforced (`MAX_EVENT_LAMPORTS`) | Enforced in route schema |
-| S8 | Duplicate payment on retry | Safe retry policy; identical signed tx resubmission; blockhash expiry checks | Implemented in Phase 4 |
-| S9 | Single lying RPC | Cross-check signature status across multiple RPC endpoints | Implemented in Phase 3/4 |
-| S10 | API flooding / DoS | Atomic SQLite fixed-window rate limiter per API key hash | Verified (`tests/unit/rate-limit.test.ts`) |
-| S11 | Malformed input | Strict Zod validation schemas on all inputs | Verified (30/30 test cases in `tests/security/ingest-security.test.ts`) |
-| S12 | Vulnerable dependencies | `npm audit --omit=dev` scanning and documented exceptions | Documented below |
-| S13 | Chaos routes in production | Double guard: `CHAOS_ENABLED=true` and `NODE_ENV !== "production"` | Route guard |
-| S14 | Treasury drained by bug | Balance check against `TREASURY_MIN_LAMPORTS` before dispatch | Implemented in Phase 4 |
-| S15 | Dev log leaks | Structured JSON logger with regex key redaction; no stack traces in API errors | Verified |
-| S16 | Device reset drops events | `epoch` in unique key; new epoch accepted; audit log record | Verified (`tests/integration/ingest.test.ts`) |
-| S17 | Conflicting content accepted | Payload hash compared on duplicate; mismatch yields 409 conflict | Verified (`tests/security/ingest-security.test.ts`) |
-| S18 | Memo bloat | Pre-signing length check against `MEMO_MAX_BYTES` (120 bytes) | Verified (`tests/unit/ids.test.ts`) |
-| S19 | Cross-process state drift | Circuit breaker, chaos flags, rate limits stored in SQLite | Verified |
-| S20 | Shutdown loss or double pay | State persisted before external action; graceful in-flight completion and resume | Verified (`tests/integration/app-shutdown.test.ts`) |
+| S4 | Mainnet used by accident | DevNet cluster requirement & genesis hash guard in config/router | Verified by tests (`tests/integration/solana-devnet.test.ts`, `tests/unit/config.test.ts`) |
+| S5 | Key leakage | Keys only stored in gitignored `keys/` or `.env.local`; logger redacts key patterns | **Documented Gap** (Implemented in `.gitignore` and `src/lib/logger.ts`, but no automated test scans build output or runtime logs for key bytes) |
+| S6 | Plaintext API keys | Business API keys stored solely as SHA-256 hashes | Verified by tests (`tests/security/ingest-security.test.ts`) |
+| S7 | Oversized or abusive amounts | Max amount per event enforced (`MAX_EVENT_LAMPORTS`); max batch enforced | Verified by tests (`tests/security/ingest-security.test.ts`, `tests/unit/batcher.test.ts`, `tests/unit/money.test.ts`) |
+| S8 | Duplicate payment on retry | Safe retry policy; identical signed tx resubmission; blockhash expiry checks | Verified by tests (`tests/unit/retry-policy.test.ts`, `tests/chaos/crash-midbatch.test.ts`, `tests/integration/chain-duplicates.test.ts`) |
+| S9 | Single lying RPC | Cross-check signature status across multiple RPC endpoints | Verified by tests (`tests/chaos/lying-rpc.test.ts`) |
+| S10 | API flooding / DoS | Atomic SQLite fixed-window rate limiter per API key hash | Verified by tests (`tests/unit/rate-limit.test.ts`) |
+| S11 | Malformed input | Strict Zod validation schemas on all inputs | Verified by tests (30/30 test cases in `tests/security/ingest-security.test.ts`) |
+| S12 | Vulnerable dependencies | `npm audit --omit=dev` scanning and documented exceptions | **Documented Gap** (Enforced at CLI/CI gate level via `npm audit --omit=dev`; no Vitest test file) |
+| S13 | Chaos routes in production | Double guard: `CHAOS_ENABLED=true` and `NODE_ENV !== "production"` | Verified by tests (`tests/integration/cross-process-chaos.test.ts`) |
+| S14 | Treasury drained by bug | Balance check against `TREASURY_MIN_LAMPORTS` before dispatch | Verified by tests (`tests/integration/treasury-guard.test.ts`) |
+| S15 | Dev log leaks | Structured JSON logger with regex key redaction; no stack traces in API errors | **Documented Gap** (Implemented in `src/lib/logger.ts`; no automated test captures logger stdout to assert redaction) |
+| S16 | Device reset drops events | `epoch` in unique key; new epoch accepted; audit log record | Verified by tests (`tests/integration/device-reset.test.ts`, `tests/integration/ingest.test.ts`, `tests/unit/device-sim.test.ts`) |
+| S17 | Conflicting content accepted | Payload hash compared on duplicate; mismatch yields 409 conflict | Verified by tests (`tests/security/ingest-security.test.ts`, `tests/integration/ingest.test.ts`, `tests/integration/device-reset.test.ts`) |
+| S18 | Memo bloat | Pre-signing length check against `MEMO_MAX_BYTES` (120 bytes) | Verified by tests (`tests/security/memo-limit.test.ts`, `tests/unit/ids.test.ts`) |
+| S19 | Cross-process state drift | Circuit breaker, chaos flags, rate limits stored in SQLite | Verified by tests (`tests/integration/cross-process-chaos.test.ts`, `tests/integration/dashboard-api.test.ts`, `tests/integration/db.test.ts`) |
+| S20 | Shutdown loss or double pay | State persisted before external action; graceful in-flight completion and resume | Verified by tests (`tests/integration/worker-shutdown.test.ts`, `tests/integration/app-shutdown.test.ts`, `tests/chaos/crash-midbatch.test.ts`) |
 
 ## Dependency Audit & Vulnerability Assessment (Section 7.1 S12)
 
 Zod has been upgraded to **`zod@4.6.7`**, resolving GHSA-mrhx-c7xc-m3w5. The Zod vulnerability is completely gone from the audit report.
 
-Running `npm audit --omit=dev` reports 1 high-severity finding (`postcss` via Next.js) and moderate-severity findings from the pinned `@solana/web3.js` 1.x line.
+Running `npm audit --omit=dev` reports exactly **6 vulnerabilities (5 moderate, 1 high, 0 critical)**: 1 high-severity finding (`postcss` via Next.js, approved exception) and 5 moderate-severity findings from the pinned `@solana/web3.js` 1.x line. Zero critical vulnerabilities exist in production dependencies.
 
 ### 1. `postcss` (<=8.5.22) — High Severity (Next.js internal) — [EXCEPTION APPROVED]
 - **Approval Date**: 7th Nov, 2026 (approved by user)

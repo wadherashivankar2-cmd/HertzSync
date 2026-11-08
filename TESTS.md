@@ -38,6 +38,11 @@
   - Blueprint Section 9.3 internal state mapping to plain English labels, colors, and tooltips
   - Batch settlement lifecycle states mapping
   - Unknown state fallback formatting
+- `tests/unit/metrics.test.ts`: 4 passed / 4 total
+  - Persists and retrieves atomic counters from SQLite counters table
+  - Computes p50 and p95 nearest-rank percentiles accurately on known dataset
+  - Prunes latency_samples beyond boundary (maxPerKind = 10,000)
+  - collectMetrics compiles complete Section 8.1 schema from SQLite only
 
 ## Integration Tests
 - `tests/integration/db.test.ts`: 4 passed / 4 total (WAL mode, busy_timeout=5000, foreign_keys=1, reopen persistence, unique key constraint, concurrent child/parent process writes)
@@ -86,6 +91,9 @@
   - GET /api/v1/batches returns batches with payee labels and explorer URLs
   - GET /api/v1/reconciliation returns latest conservation report
   - POST /api/v1/chaos alters system_state which is immediately reflected in GET /api/v1/metrics
+- `tests/integration/metrics-endpoint.test.ts`: 2 passed / 2 total
+  - GET /api/v1/metrics returns all Section 8.1 required keys and valid types
+  - Dynamic derivation: metrics respond to database state changes without hardcoding
 
 ## Security Tests
 - `tests/security/ingest-security.test.ts`: 5 passed / 5 total
@@ -120,7 +128,25 @@
   - Live Network Calls: 0 (Strict Zero DevNet calls via MockRpcRouter)
   - Reconciliation: generated=1000, accounted=1000, lost=0, duplicates=0, ok=true
 
-## E2E Tests
+## Phase 8 Test Hardening & Three Consecutive Test Runs
+
+Environment: `MAX_LIVE_TRANSFERS_PER_TEST_RUN=0`
+
+| Run # | Start Time (UTC) | Test Files Passed | Total Tests Passed | Total Duration | Summary Line |
+|---|---|---|---|---|---|
+| **Run 1** | 2026-11-08 02:02:27 | 34 / 34 | 109 / 109 | 17.16s | `Test Files  34 passed (34) \| Tests  109 passed (109) \| Duration  17.16s` |
+| **Run 2** | 2026-11-08 02:03:31 | 34 / 34 | 109 / 109 | 17.69s | `Test Files  34 passed (34) \| Tests  109 passed (109) \| Duration  17.69s` |
+| **Run 3** | 2026-11-08 02:04:34 | 34 / 34 | 109 / 109 | 16.67s | `Test Files  34 passed (34) \| Tests  109 passed (109) \| Duration  16.67s` |
+
+Consistency: 100% pass rate across all 3 consecutive runs (34 suites, 109 tests, 0 flakes, 0 failures).
+
+## Dependency Audit Results (Phase 8 Definition of Done)
+
+Command: `npm audit --omit=dev`
+- **Total Vulnerabilities**: 6 (0 critical, 1 high, 5 moderate)
+- **High Severity (1)**: `postcss` (<=8.5.22) via `next@15.5.29`. Formally reviewed and recorded as an approved exception on 7th Nov, 2026. Only used for build-time static CSS compilation.
+- **Moderate Severity (5)**: `stream-json` and `uuid` via `jayson` inside pinned `@solana/web3.js` 1.x line (`^1.98.0`). Not exposed to untrusted external input.
+- **Critical Findings in Production**: 0.
 
 ---
-**Total: 103 passed / 103 tests across 32 test suites**
+**Total: 109 passed / 109 tests across 34 test suites**
