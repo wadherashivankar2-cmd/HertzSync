@@ -12,6 +12,7 @@
     "seed": "vite-node --script scripts/seed.ts",
     "worker": "vite-node --script src/worker/index.ts",
     "sim": "vite-node --script scripts/device-sim.ts",
+    "backup": "vite-node --script scripts/backup.ts",
     "report": "vite-node --script scripts/report.ts"
   },
   "dependencies": {

@@ -149,6 +149,7 @@ To shut down gracefully, **always stop the worker first, then the web app**:
 | `npm run dev` | Starts Next.js development web server (port 3000) |
 | `npm run worker` | Starts the background Solana settlement worker |
 | `npm run sim` | Generates realistic Ed25519-signed charger sessions |
+| `npm run backup` | Writes an atomic, timestamped copy of `data/trickle.db` to `backups/` using SQLite `VACUUM INTO` |
 | `npm run report` | Generates a plain-English system audit and reconciliation report |
 | `npm test` | Runs the full Vitest test suite (109 tests across 34 suites) |
 | `npm audit --omit=dev` | Scans production dependencies for vulnerabilities |
