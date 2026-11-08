@@ -52,11 +52,19 @@ Clone the repository and install dependencies:
 npm install
 ```
 
-Configure environment variables:
-```bash
-cp .env.example .env.local
-```
-*(On Windows PowerShell: `Copy-Item .env.example .env.local`)*
+Copy the example environment configuration to `.env.local`:
+- **macOS / Linux:**
+  ```bash
+  cp .env.example .env.local
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  Copy-Item .env.example .env.local
+  ```
+- **Windows (Command Prompt / cmd):**
+  ```cmd
+  copy .env.example .env.local
+  ```
 
 ### 3. Generate Treasury Keypair
 Generate the server-held DevNet settlement treasury keypair:
@@ -121,9 +129,9 @@ For a timed walkthrough, refer to [docs/demo-script.md](docs/demo-script.md).
 
 TrickleSettle guarantees state persistence before any external action.
 
-To shut down gracefully:
-- **Settlement Worker:** Press `Ctrl+C` once. The worker stops accepting new batches, finishes any in-flight transaction step, executes an atomic SQLite `TRUNCATE` checkpoint to merge the `-wal` file back into the main database, and exits with code 0.
-- **Web Server:** Press `Ctrl+C` in the Next.js terminal.
+To shut down gracefully, **always stop the worker first, then the web app**:
+1. **Stop the Settlement Worker First:** Press `Ctrl+C` once in the worker terminal. The worker stops accepting new batches, finishes any in-flight transaction step, executes an atomic SQLite `TRUNCATE` checkpoint to merge the `-wal` file back into the main database, and exits with code 0.
+2. **Stop the Web App Second:** Press `Ctrl+C` in the Next.js development server terminal.
 
 *If restarted after an abrupt kill (`SIGKILL`), the worker resumes pending unconfirmed batches and validates them on-chain before processing new batches.*
 
