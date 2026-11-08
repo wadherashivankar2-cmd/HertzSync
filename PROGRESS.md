@@ -8,6 +8,6 @@
 - Phase 5: Device simulator - COMPLETE
 - Phase 6: Operator console (dashboard) - COMPLETE
 - Phase 7: Metrics and observability - COMPLETE
-- Phase 8: Full test and security hardening - IN REVIEW (3 consecutive suite runs 100% pass, audit verified, S1-S20 verified with documented gaps)
-- Phase 9: Documentation and demo - NOT STARTED
+- Phase 8: Full test and security hardening - COMPLETE
+- Phase 9: Documentation and demo - IN REVIEW (README, demo-script, KNOWN_LIMITS verified, clean-clone check passed)
 - Phase 10: Final Definition of Done - NOT STARTED
