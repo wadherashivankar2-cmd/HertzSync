@@ -67,5 +67,4 @@ Both critical vulnerabilities are strictly contained in development test runner 
 ## Phase 8 Requirement Note
 > [!IMPORTANT]
 > **Phase 8 Definition of Done Requirement:**
-> Phase 8 requires **zero unresolved high or critical findings** in `npm audit --omit=dev`.
-> The high-severity finding in `postcss` (bundled inside `next@15.5.29`) has been reviewed and formally recorded as an approved exception on 7th Nov, 2026.
+> 0 critical; 1 high is an approved, documented exception (PostCSS build tooling within Next.js); 5 moderate in pinned @solana/web3.js 1.x dependencies. All documented with feature-usage analysis in SECURITY.md.
