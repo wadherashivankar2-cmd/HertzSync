@@ -107,7 +107,7 @@ export function seed() {
   };
 }
 
-if (process.argv[1] && process.argv[1].endsWith("seed.ts")) {
+if (!process.env.VITEST) {
   const result = seed();
   console.log("Seeding completed successfully.");
   console.log(`Business ID: ${result.businessId}`);

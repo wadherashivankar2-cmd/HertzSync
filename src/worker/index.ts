@@ -1,4 +1,6 @@
 import Database from "better-sqlite3";
+import fs from "fs";
+import path from "path";
 import { createDatabaseConnection, truncateCheckpoint } from "../lib/db";
 import { RpcRouter } from "../lib/rpc-router";
 import { getConfig, Config } from "../lib/config";
@@ -228,6 +230,25 @@ export class SettlementWorker {
 }
 
 // Standalone executable process handling
+function loadEnvLocal() {
+  const envPath = path.resolve(process.cwd(), ".env.local");
+  if (fs.existsSync(envPath)) {
+    const lines = fs.readFileSync(envPath, "utf8").split("\n");
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx !== -1) {
+        const key = trimmed.slice(0, idx).trim();
+        const val = trimmed.slice(idx + 1).trim();
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  }
+}
+
 const isMainModule =
   process.env.RUN_WORKER === "true" ||
   process.argv.some(
@@ -239,6 +260,7 @@ const isMainModule =
   );
 
 if (isMainModule) {
+  loadEnvLocal();
   const config = getConfig();
   const db = createDatabaseConnection();
   const router = new RpcRouter(db);

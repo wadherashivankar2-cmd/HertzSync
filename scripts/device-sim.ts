@@ -344,3 +344,70 @@ export class DeviceSimulator {
   }
 }
 
+// CLI runner if executed directly via node/vite-node/tsx
+if (!process.env.VITEST) {
+  const args = process.argv.slice(2);
+  const mode = args.find((a) => a.startsWith("--mode="))?.split("=")[1] || "normal";
+  const count = parseInt(args.find((a) => a.startsWith("--count="))?.split("=")[1] || "30", 10);
+  const interval = parseInt(args.find((a) => a.startsWith("--interval="))?.split("=")[1] || "1000", 10);
+  const apiUrl = args.find((a) => a.startsWith("--api="))?.split("=")[1] || "http://localhost:3000/api/v1/events";
+  const apiKey = args.find((a) => a.startsWith("--key="))?.split("=")[1] || "ts_live_demo_apikey_883921";
+  const bizId = args.find((a) => a.startsWith("--biz="))?.split("=")[1] || "biz_demo_01";
+
+  const deviceIds = ["dev_charger_001", "dev_charger_002", "dev_charger_003"];
+  const sims = deviceIds.map(
+    (id, idx) => new DeviceSimulator(id, `Charger ${idx + 1}`, { businessId: bizId })
+  );
+
+  console.log(`Starting Device Simulator in [${mode}] mode...`);
+  console.log(`Target API: ${apiUrl} | Devices: ${deviceIds.join(", ")}`);
+
+  let sent = 0;
+  let active = true;
+
+  process.once("SIGINT", () => {
+    active = false;
+    console.log("\nSimulator stopping cleanly. Device states persisted.");
+    process.exit(0);
+  });
+
+  const sendEvent = async (sim: DeviceSimulator) => {
+    const event = sim.generateNextEvent(10_000); // 10,000 lamports (0.000010 SOL)
+    try {
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(event),
+      });
+
+      if (res.status === 202 || res.status === 200) {
+        sim.onEventAccepted(event);
+      } else {
+        const txt = await res.text();
+        console.warn(`[REJECTED] ${sim.getState().deviceId}: HTTP ${res.status} - ${txt}`);
+      }
+    } catch (err: any) {
+      console.warn(`[NETWORK_ERR] ${sim.getState().deviceId}: ${err.message}`);
+    }
+  };
+
+  const runLoop = async () => {
+    for (let i = 0; i < count; i++) {
+      if (!active) break;
+      const sim = sims[i % sims.length];
+      await sendEvent(sim);
+      sent++;
+      if (i < count - 1) {
+        await new Promise((r) => setTimeout(r, interval));
+      }
+    }
+    console.log(`Simulation complete. Sent ${sent} events.`);
+  };
+
+  runLoop();
+}
+
+

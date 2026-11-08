@@ -40,7 +40,7 @@ export function generateOrLoadTreasuryKey(filePath: string = "./keys/treasury.js
   return keypair;
 }
 
-if (process.argv[1] && process.argv[1].endsWith("keygen.ts")) {
+if (!process.env.VITEST) {
   const force = process.argv.includes("--force");
   const keyPath = process.env.TREASURY_KEYPAIR_PATH || "./keys/treasury.json";
   const keypair = generateOrLoadTreasuryKey(keyPath, force);
