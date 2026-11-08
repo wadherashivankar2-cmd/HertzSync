@@ -93,7 +93,7 @@ describe("Cross-Run Events Hash Uniqueness and Chain Verification (Prompt 10)", 
     });
 
     console.log("=== LIVE ON-CHAIN DUPLICATE CHECK REPORT ===");
-    console.log(`Total confirmed trickle batches checked: ${report.totalConfirmedBatches}`);
+    console.log(`Total confirmed settlement batches checked: ${report.totalConfirmedBatches}`);
     console.log(`Unique events hashes: ${report.uniqueEventsHashes}`);
     console.log(`Duplicate hashes: ${report.duplicateHashes.length}`);
     console.log(`Status OK: ${report.ok}`);

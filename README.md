@@ -1,13 +1,14 @@
-# TrickleSettle
+# HertzSync
 
 > **DePIN Micro-Settlement Batching Engine for Solana DevNet**  
 > Queues high-frequency device events durably in SQLite, aggregates them into provably reconciled settlement batches on Solana DevNet, gracefully survives network outages and process crashes, and provides live mathematical reconciliation proofs.
 
-[![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen)](TESTS.md)
+[![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen)](TESTS.md)
 [![Security Policy](https://img.shields.io/badge/security-S1--S20%20verified-blue)](SECURITY.md)
 [![Known Limits](https://img.shields.io/badge/limits-documented-orange)](KNOWN_LIMITS.md)
 
 **Documentation & Policy Links:**
+- [Check the README](https://github.com/wadherashivankar2-cmd/HertzSync#readme) — Project repository and operator guide.
 - [SECURITY.md](SECURITY.md) — Threat model, security checklist S1–S20, dependency audit, and approved exceptions.
 - [TESTS.md](TESTS.md) — Complete test inventory, chaos tests, burst load tests, and 3-run verification.
 - [KNOWN_LIMITS.md](KNOWN_LIMITS.md) — DevNet scope, single-host model, simulated hardware, and test history limits.
@@ -19,7 +20,7 @@
 
 Physical devices like EV chargers, IoT sensors, or telecom hotspots generate thousands of tiny usage events every minute. Paying a separate transaction fee on Solana for each 1-cent micro-session is cost-prohibitive and fragile during RPC outages.
 
-**TrickleSettle** acts as a durable reliability buffer:
+**HertzSync** acts as a durable reliability buffer:
 1. **Durable Local Ingestion**: Accepts Ed25519-signed events from devices instantly into an atomic, local SQLite queue (<15ms latency).
 2. **Batch Settlement**: Aggregates hundreds of micro-sessions into single on-chain transfer transactions on Solana DevNet, drastically reducing network fees.
 3. **Outage Resilience**: If Solana RPC endpoints go down, incoming sessions continue to be accepted and queued safely without data loss. When connectivity restores, settlements resume automatically.
@@ -31,11 +32,21 @@ Physical devices like EV chargers, IoT sensors, or telecom hotspots generate tho
 
 > [!IMPORTANT]
 > **Single Host Deployment Only:**  
-> TrickleSettle is designed for deployment on a **single host** (a local developer machine or single VM). Two processes—the Next.js API/dashboard server and the background settlement worker—share a single SQLite database in WAL (`Write-Ahead Logging`) mode. It is **NOT** designed for serverless or multi-server deployments.
+> HertzSync is designed for deployment on a **single host** (a local developer machine or single VM). Two processes—the Next.js API/dashboard server and the background settlement worker—share a single SQLite database in WAL (`Write-Ahead Logging`) mode. It is **NOT** designed for serverless or multi-server deployments.
 
 > [!WARNING]
 > **DevNet Only — Not for Real Funds:**  
 > This project is strictly restricted to **Solana DevNet**. It verifies genesis hashes at boot and refuses to start on mainnet.
+
+---
+
+## Naming Note
+
+The project was renamed from TrickleSettle to **HertzSync** on November 8, 2026. To preserve full backward compatibility with existing operational scripts, test harnesses, and on-chain records:
+- Internal database paths remain `data/trickle.db`.
+- Environment variable names (`DB_PATH`, `TREASURY_MIN_LAMPORTS`, etc.) remain unchanged.
+- On-chain transaction memo prefixes remain `trickle:v1:<batchId>:<eventsHash>`.
+- Internal module file paths and schema structures remain intact.
 
 ---
 
@@ -132,7 +143,7 @@ For a timed walkthrough, refer to [docs/demo-script.md](docs/demo-script.md).
 
 ## Stopping Safely
 
-TrickleSettle guarantees state persistence before any external action.
+HertzSync guarantees state persistence before any external action.
 
 To shut down gracefully, **always stop the worker first, then the web app**:
 1. **Stop the Settlement Worker First:** Press `Ctrl+C` once in the worker terminal. The worker stops accepting new batches, finishes any in-flight transaction step, executes an atomic SQLite `TRUNCATE` checkpoint to merge the `-wal` file back into the main database, and exits with code 0.
@@ -151,5 +162,5 @@ To shut down gracefully, **always stop the worker first, then the web app**:
 | `npm run sim` | Generates realistic Ed25519-signed charger sessions |
 | `npm run backup` | Writes an atomic, timestamped copy of `data/trickle.db` to `backups/` using SQLite `VACUUM INTO` |
 | `npm run report` | Generates a plain-English system audit and reconciliation report |
-| `npm test` | Runs the full Vitest test suite (109 tests across 34 suites) |
+| `npm test` | Runs the full Vitest test suite (113 tests across 36 suites) |
 | `npm audit --omit=dev` | Scans production dependencies for vulnerabilities |

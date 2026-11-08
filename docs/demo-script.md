@@ -1,6 +1,6 @@
-# TrickleSettle 90-Second Demo Script
+# HertzSync 90-Second Demo Script
 
-This script walks through the complete end-to-end TrickleSettle demonstration in 90 seconds, following **Blueprint Section 13**.
+This script walks through the complete end-to-end HertzSync demonstration in 90 seconds, following **Blueprint Section 13**.
 
 ---
 

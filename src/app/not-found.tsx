@@ -23,7 +23,7 @@ export default function NotFound() {
           <span className="text-[var(--accent)] font-mono text-base" aria-hidden="true">
             ⚡
           </span>
-          <span>TrickleSettle</span>
+          <span>HertzSync</span>
         </Link>
         <ThemeSwitcher />
       </header>
@@ -93,7 +93,7 @@ export default function NotFound() {
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a
-                href="https://github.com/shivasurya-s/trickle-settle#readme"
+                href="https://github.com/wadherashivankar2-cmd/Solpro#readme"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-lg bg-surface-alt hover:bg-surface-hover text-text border border-border font-semibold text-sm btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] inline-flex items-center justify-center transition-all"
@@ -121,7 +121,7 @@ export default function NotFound() {
       {/* Footer info strip on solid surface */}
       <footer className="relative z-10 max-w-5xl w-full mx-auto text-center py-2">
         <div className="inline-block px-4 py-1.5 rounded-md bg-surface border border-border text-xs text-muted">
-          TrickleSettle Operator Console · Solana DevNet
+          HertzSync Operator Console · Solana DevNet
         </div>
       </footer>
     </main>

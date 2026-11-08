@@ -1,8 +1,8 @@
-# TrickleSettle: Build Blueprint
+# HertzSync: Build Blueprint
 
-**One-line:** TrickleSettle is a reliability layer between a business's device or usage events and Solana DevNet. It queues events durably, pays in batches, survives outages, and proves every payment reconciles.
+**One-line:** HertzSync is a reliability layer between a business's device or usage events and Solana DevNet. It queues events durably, pays in batches, survives outages, and proves every payment reconciles.
 
-**Positioning:** Middle layer for businesses, not a standalone consumer app. Business customers send usage events through an API. TrickleSettle handles queuing, batching, retries, RPC failover, and reconciliation.
+**Positioning:** Middle layer for businesses, not a standalone consumer app. Business customers send usage events through an API. HertzSync handles queuing, batching, retries, RPC failover, and reconciliation.
 
 **Deployment model (explicit):** Single host (local machine or one VM). Two long-running processes: the Next.js server and the settlement worker. Both share one SQLite file. This is NOT a serverless design. Do not deploy the worker to serverless functions. Any state shared between the two processes must live in SQLite, never in process memory.
 
@@ -61,7 +61,7 @@ DePIN businesses (EV charging networks, hotspot networks, sensor networks, usage
 
 | User | What they do | What they need |
 |---|---|---|
-| Business (customer of TrickleSettle) | Sends usage events through API | Reliable settlement, status per event, reconciliation |
+| Business (customer of HertzSync) | Sends usage events through API | Reliable settlement, status per event, reconciliation |
 | Operator (business's payee) | Receives payments | Proof that earnings are complete and correct |
 | Device (simulated) | Generates signed usage events | Events accepted even when the chain is down; safe recovery after losing local state |
 | Judge / reviewer | Watches the demo | Understands the value in 90 seconds, with no wallet setup |

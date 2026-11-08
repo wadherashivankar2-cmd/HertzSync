@@ -14,7 +14,7 @@ export function generateReport(dbPath?: string): string {
 
   const lines: string[] = [];
   lines.push("================================================================================");
-  lines.push("                       TRICKLESETTLE SYSTEM REPORT                              ");
+  lines.push("                          HERTZSYNC SYSTEM REPORT                               ");
   lines.push("================================================================================");
   lines.push(`Report Generated:   ${new Date().toISOString()}`);
   lines.push(`Database:           ${targetDbPath}`);

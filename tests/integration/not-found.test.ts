@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import React from "react";
+import path from "path";
 import { spawn, execSync } from "child_process";
 import NotFound from "../../src/app/not-found";
 
@@ -53,7 +54,7 @@ describe("404 Not Found Page (src/app/not-found.tsx)", () => {
     expect(primaryButton.props.className).toContain("min-h-[44px]");
 
     // Secondary button: Check the README (links to repo README)
-    expect(secondaryButton.props.href).toContain("github.com/shivasurya-s/trickle-settle#readme");
+    expect(secondaryButton.props.href).toContain("github.com/wadherashivankar2-cmd/Solpro#readme");
     expect(secondaryButton.props.children).toBe("Check the README");
     expect(secondaryButton.props.className).toContain("min-h-[44px]");
   });
@@ -67,8 +68,8 @@ describe("404 Not Found Page (src/app/not-found.tsx)", () => {
     } catch {
       // If server is not currently running, spawn ephemeral Next.js instance on test port
       const testPort = 3005;
-      const child = spawn("npx.cmd", ["next", "start", "-p", String(testPort)], {
-        shell: true,
+      const nextBin = path.resolve(process.cwd(), "node_modules/next/dist/bin/next");
+      const child = spawn(process.execPath, [nextBin, "start", "-p", String(testPort)], {
         stdio: "pipe",
       });
       try {

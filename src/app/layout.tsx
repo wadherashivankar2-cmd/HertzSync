@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TrickleSettle Operator Console",
+  title: "HertzSync Operator Console",
   description: "Reliability layer between business events and Solana DevNet",
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var saved = localStorage.getItem('tricklesettle-theme');
+                  var saved = localStorage.getItem('hertzsync-theme') || localStorage.getItem('tricklesettle-theme');
                   var theme = saved;
                   if (!theme) {
                     theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';

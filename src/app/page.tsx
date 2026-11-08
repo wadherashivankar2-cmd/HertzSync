@@ -108,7 +108,7 @@ export default function DashboardPage() {
               <span className="text-[var(--accent)] font-mono tracking-tighter" aria-hidden="true">
                 ⚡
               </span>
-              TrickleSettle
+              HertzSync
             </h1>
             <span className="text-xs text-muted font-normal">Operator Console</span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-bg text-success-text border border-success-border">

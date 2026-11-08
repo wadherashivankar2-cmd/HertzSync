@@ -75,7 +75,7 @@ export async function assertNoDuplicateEventsHashes(
     }
   }
 
-  // 2. Parse confirmed trickle batch memos
+  // 2. Parse confirmed settlement batch memos (prefix: trickle:v1:)
   const hashToBatches = new Map<string, Array<{ signature: string; batchId: string }>>();
   let totalConfirmedBatches = 0;
 

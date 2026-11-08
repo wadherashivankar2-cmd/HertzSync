@@ -1,5 +1,8 @@
 # Progress Log
 
+> [!NOTE]
+> Project renamed from TrickleSettle to HertzSync on November 8, 2026.
+
 - Phase 0: Setup and guardrails - COMPLETE (genesis hash verified in Phase 3)
 - Phase 1: Database and shared state foundation - COMPLETE
 - Phase 2: Ingest API and security - COMPLETE

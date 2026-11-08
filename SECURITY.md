@@ -1,7 +1,7 @@
 # Security Policy and Vulnerability Assessment
 
 ## Overview
-TrickleSettle is a DePIN reliability middleware prototype built for **Solana DevNet**. It is not audited, does not handle real funds, and is strictly restricted from operating on mainnet.
+HertzSync is a DePIN reliability middleware prototype built for **Solana DevNet**. It is not audited, does not handle real funds, and is strictly restricted from operating on mainnet.
 
 ## Deployment Model
 - **Single Host Only**: Designed for execution on a single VM or physical host where the Next.js API server and settlement worker share a single SQLite database in WAL mode.

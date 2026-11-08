@@ -8,7 +8,7 @@ export function ThemeSwitcher() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("tricklesettle-theme");
+    const saved = localStorage.getItem("hertzsync-theme") || localStorage.getItem("tricklesettle-theme");
     if (saved === "light" || saved === "dark") {
       setTheme(saved);
       document.documentElement.setAttribute("data-theme", saved);
@@ -22,7 +22,7 @@ export function ThemeSwitcher() {
 
   const selectTheme = (newTheme: "dark" | "light") => {
     setTheme(newTheme);
-    localStorage.setItem("tricklesettle-theme", newTheme);
+    localStorage.setItem("hertzsync-theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
     if (newTheme === "light") {
       document.documentElement.classList.add("light");
