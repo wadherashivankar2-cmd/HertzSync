@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { MetricCard } from "../components/MetricCard";
-import { FlowDiagram } from "../components/FlowDiagram";
-import { EndpointPanel, RpcEndpointInfo } from "../components/EndpointPanel";
-import { ChaosControls } from "../components/ChaosControls";
-import { BatchTable, BatchItem } from "../components/BatchTable";
-import { ReconciliationPanel, ReconciliationData } from "../components/ReconciliationPanel";
-import { EventLog, AuditLogItem } from "../components/EventLog";
-import { ThemeSwitcher } from "../components/ThemeSwitcher";
+import { MetricCard } from "@/components/MetricCard";
+import { FlowDiagram } from "@/components/FlowDiagram";
+import { EndpointPanel, RpcEndpointInfo } from "@/components/EndpointPanel";
+import { ChaosControls } from "@/components/ChaosControls";
+import { BatchTable, BatchItem } from "@/components/BatchTable";
+import { ReconciliationPanel, ReconciliationData } from "@/components/ReconciliationPanel";
+import { EventLog, AuditLogItem } from "@/components/EventLog";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<any>(null);

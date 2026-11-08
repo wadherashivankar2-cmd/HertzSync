@@ -135,7 +135,7 @@ export default function WelcomePage() {
         {/* Actions: primary coral button with dark text, secondary muted link, 16px text */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mt-4">
           <Link
-            href="/"
+            href="/dashboard"
             className="min-h-[44px] min-w-[200px] px-6 py-3 rounded-lg bg-[#FF8A4C] hover:bg-[#ff9a63] text-[#0A0F1F] font-semibold text-[16px] btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A4C] inline-flex items-center justify-center transition-all"
           >
             Open operator console

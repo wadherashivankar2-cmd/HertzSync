@@ -101,7 +101,7 @@ export default function NotFound() {
                 Check the README
               </a>
               <Link
-                href="/"
+                href="/dashboard"
                 style={{ boxShadow: "0 0 16px 0 var(--accent-glow)" }}
                 className="min-h-[44px] min-w-[44px] px-6 py-2.5 rounded-lg bg-[var(--accent)] text-[var(--accent-text)] font-semibold text-sm btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] inline-flex items-center justify-center transition-all"
               >
