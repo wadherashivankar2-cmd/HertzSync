@@ -141,8 +141,8 @@ export default function DashboardPage() {
               title="Lost Events"
               value={metrics?.events_lost ?? 0}
               subtitle={
-                reconciliation?.run_at
-                  ? `Last reconciled: ${new Date(reconciliation.run_at).toLocaleTimeString()}`
+                reconciliation?.runAt
+                  ? `Last reconciled: ${new Date(reconciliation.runAt).toLocaleTimeString()}`
                   : "Last reconciled: pending"
               }
               badge={{ text: "✓ Zero Lost", variant: "success" }}
