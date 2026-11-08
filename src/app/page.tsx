@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { MetricCard } from "../components/MetricCard";
 import { FlowDiagram } from "../components/FlowDiagram";
 import { EndpointPanel, RpcEndpointInfo } from "../components/EndpointPanel";
@@ -8,6 +8,7 @@ import { ChaosControls } from "../components/ChaosControls";
 import { BatchTable, BatchItem } from "../components/BatchTable";
 import { ReconciliationPanel, ReconciliationData } from "../components/ReconciliationPanel";
 import { EventLog, AuditLogItem } from "../components/EventLog";
+import { ThemeSwitcher } from "../components/ThemeSwitcher";
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<any>(null);
@@ -19,6 +20,11 @@ export default function DashboardPage() {
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number>(Date.now());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Real SQLite sparkline histories (no random data)
+  const [receivedHistory, setReceivedHistory] = useState<number[]>([]);
+  const [waitingHistory, setWaitingHistory] = useState<number[]>([]);
+  const initialReceivedRef = useRef<number | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -36,7 +42,8 @@ export default function DashboardPage() {
       const batchesData = await batchesRes.json();
       const reconData = await reconRes.json();
 
-      setMetrics(metricsData.metrics || null);
+      const m = metricsData.metrics || null;
+      setMetrics(m);
       setEndpoints(metricsData.rpc_endpoints || []);
       setAuditLogs(metricsData.recent_audit_logs || []);
       setChaosEnabled(Boolean(metricsData.chaos_enabled));
@@ -45,6 +52,24 @@ export default function DashboardPage() {
       setReconciliation(reconData.reconciliation || null);
       setLastRefreshedAt(Date.now());
       setError(null);
+
+      if (m) {
+        if (initialReceivedRef.current === null) {
+          initialReceivedRef.current = m.events_received_total || 0;
+        }
+        const total = m.events_received_total || 0;
+        const waiting = (m.events_queued || 0) + (m.events_batched || 0);
+
+        setReceivedHistory((prev) => {
+          const next = [...prev, total];
+          return next.slice(-10);
+        });
+
+        setWaitingHistory((prev) => {
+          const next = [...prev, waiting];
+          return next.slice(-10);
+        });
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard data from SQLite.");
     } finally {
@@ -60,42 +85,69 @@ export default function DashboardPage() {
   }, [fetchDashboardData]);
 
   const waitingCount = (metrics?.events_queued || 0) + (metrics?.events_batched || 0);
-  const chainHealthy = endpoints.length > 0 && endpoints.some((e) => e.state === "closed" || e.state === "half_open");
+  const chainHealthy =
+    endpoints.length > 0 &&
+    endpoints.some((e) => e.state === "closed" || e.state === "half_open");
+
+  // Real batch sizes from confirmed SQLite batches for the paid sparkline
+  const paidSparklineData =
+    batches.length > 0
+      ? batches.slice(0, 10).map((b) => b.eventCount).reverse()
+      : [metrics?.events_paid || 0];
+
+  const initialTotal = initialReceivedRef.current ?? (metrics?.events_received_total || 0);
+  const deltaReceived = Math.max(0, (metrics?.events_received_total || 0) - initialTotal);
 
   return (
-    <div className="min-h-screen bg-bg text-text pb-16">
+    <div className="min-h-screen pb-16 transition-colors duration-200">
       {/* Header */}
-      <header className="border-b border-slate-800 bg-surface sticky top-0 z-30">
+      <header className="border-b border-border bg-surface sticky top-0 z-30 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-xl font-bold tracking-tight text-text flex items-center gap-2">
-              <span className="text-teal-400 font-mono tracking-tighter">⚡</span>
+              <span className="text-[var(--accent)] font-mono tracking-tighter" aria-hidden="true">
+                ⚡
+              </span>
               TrickleSettle
             </h1>
             <span className="text-xs text-muted font-normal">Operator Console</span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-950/70 text-teal-300 border border-teal-700/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-bg text-success-text border border-success-border">
+              <span className="w-1.5 h-1.5 rounded-full bg-success-text" />
               DevNet test network
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted">
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-3.5">
+            {/* Live Polling Status Indicator */}
+            <div className="flex items-center gap-2 text-xs text-muted">
               <span
-                className={`w-2 h-2 rounded-full ${
-                  error ? "bg-red-400" : "bg-teal-400 animate-pulse"
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  error
+                    ? "bg-rose-500"
+                    : "bg-[var(--accent)]"
                 }`}
+                style={
+                  error
+                    ? undefined
+                    : { boxShadow: "0 0 12px var(--accent-glow)" }
+                }
+                aria-hidden="true"
               />
-              <span className="font-mono">
+              <span className="font-mono text-[11px]">
                 {error ? "Poll Error" : `Live: ${new Date(lastRefreshedAt).toLocaleTimeString()}`}
               </span>
             </div>
+
+            {/* Refresh Button (At least 44px interactive target) */}
             <button
               onClick={fetchDashboardData}
-              className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 border border-slate-700 text-xs transition-colors"
+              className="min-h-[44px] min-w-[44px] px-3.5 py-2 bg-surface hover:bg-surface-hover rounded-lg text-text border border-border text-xs font-semibold btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] transition-all"
             >
               Refresh
             </button>
+
+            {/* Theme Switcher Button Group */}
+            <ThemeSwitcher />
           </div>
         </div>
       </header>
@@ -104,28 +156,39 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* Error notification banner if polling failed */}
         {error && (
-          <div className="p-3 bg-red-950/70 border border-red-700 rounded-lg text-xs text-red-200 flex items-center justify-between">
+          <div className="p-3 bg-danger-bg border border-danger-border rounded-lg text-xs text-danger-text flex items-center justify-between">
             <span>Notice: {error} (Reading from SQLite)</span>
-            <button onClick={fetchDashboardData} className="underline ml-2">
+            <button
+              onClick={fetchDashboardData}
+              className="underline ml-2 min-h-[44px] px-2 py-1"
+            >
               Retry
             </button>
           </div>
         )}
 
-        {/* Row 1: Four Metric Cards */}
+        {/* Row 1: Four Stat Cards with large tabular numbers, label above, delta below, and real sparkline */}
         <section aria-label="Key Performance Metrics">
           <h2 className="sr-only">Key Performance Metrics</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
               title="Received Events"
               value={metrics?.events_received_total ?? (isLoading ? "..." : 0)}
-              subtitle="Accepted through durable ingest"
+              deltaLine={
+                <span>
+                  Delta: <span className="font-semibold text-text">+{deltaReceived}</span> this session
+                </span>
+              }
+              sparklineData={receivedHistory.length > 0 ? receivedHistory : [metrics?.events_received_total || 0]}
+              sparklineColor="var(--accent)"
               badge={{ text: "Total Ingest", variant: "neutral" }}
             />
             <MetricCard
               title="Waiting to be Paid"
               value={waitingCount}
-              subtitle="Queued safely in SQLite WAL"
+              deltaLine={<span>SQLite WAL queue · unbatched</span>}
+              sparklineData={waitingHistory.length > 0 ? waitingHistory : [waitingCount]}
+              sparklineColor="var(--pending)"
               badge={{
                 text: waitingCount > 0 ? "Queued" : "Drained",
                 variant: waitingCount > 0 ? "warning" : "success",
@@ -134,17 +197,25 @@ export default function DashboardPage() {
             <MetricCard
               title="Paid on Solana"
               value={metrics?.events_paid ?? (isLoading ? "..." : 0)}
-              subtitle="Confirmed on DevNet ledger"
+              deltaLine={
+                <span>
+                  Settled: <span className="font-semibold text-text">{batches.length}</span> batches
+                </span>
+              }
+              sparklineData={paidSparklineData}
+              sparklineColor="var(--success)"
               badge={{ text: "On-Chain", variant: "success" }}
             />
             <MetricCard
               title="Lost Events"
               value={metrics?.events_lost ?? 0}
-              subtitle={
+              deltaLine={
                 reconciliation?.runAt
                   ? `Last reconciled: ${new Date(reconciliation.runAt).toLocaleTimeString()}`
                   : "Last reconciled: pending"
               }
+              sparklineData={[0, 0, 0, 0]}
+              sparklineColor="var(--success)"
               badge={{ text: "✓ Zero Lost", variant: "success" }}
             />
           </div>
@@ -160,7 +231,10 @@ export default function DashboardPage() {
         </section>
 
         {/* Row 3: Endpoint Panel & Chaos Controls */}
-        <section aria-label="RPC Infrastructure & Chaos Injection" className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <section
+          aria-label="RPC Infrastructure & Chaos Injection"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+        >
           <EndpointPanel endpoints={endpoints} />
           <ChaosControls
             endpoints={endpoints}

@@ -154,3 +154,109 @@ Command: `npm audit --omit=dev`
 
 ---
 **Total: 109 passed / 109 tests across 34 test suites**
+
+---
+
+## Theme upgrade and 404 upgrade (visual only)
+
+### 1. Contrast Ratios Table
+
+Measured relative luminance and contrast ratios calculated per WCAG 2.1 specifications:
+
+#### Dark Mode (Base: `#0A0F1F`, Surface: `#131B35`, Accent: `#FF8A4C`)
+| Element | Foreground | Background | Measured Ratio | WCAG Target | Status |
+|---|---|---|---|---|---|
+| Primary Text on Base | `#F1F5F9` | `#0A0F1F` | **17.41:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Primary Text on Surface | `#F1F5F9` | `#131B35` | **15.51:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Muted Text on Base | `#94A3B8` | `#0A0F1F` | **7.44:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Muted Text on Surface | `#94A3B8` | `#131B35` | **6.63:1** | 4.5:1 (Body Text) | PASS (AA) |
+| Button Label on Accent | `#0A0F1F` | `#FF8A4C` | **8.17:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Focus Ring against Base | `#FF8A4C` | `#0A0F1F` | **8.17:1** | 3.0:1 (Non-text UI) | PASS (AAA) |
+| Focus Ring against Surface | `#FF8A4C` | `#131B35` | **7.28:1** | 3.0:1 (Non-text UI) | PASS (AAA) |
+| Status Badge (Success) | `#6EE7B7` | `#131B35` | **11.15:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Status Badge (Pending) | `#FCD34D` | `#131B35` | **11.78:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Status Badge (Error) | `#FCA5A5` | `#131B35` | **8.95:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| 404 Headline on Base | `#F1F5F9` | `#0A0F1F` | **17.41:1** | 3.0:1 (Large Text) | PASS (AAA) |
+
+#### Light Mode (Base: `#F4F6FB`, Surface: `#FFFFFF`, Accent: `#C2410C`)
+| Element | Foreground | Background | Measured Ratio | WCAG Target | Status |
+|---|---|---|---|---|---|
+| Primary Text on Base | `#0F172A` | `#F4F6FB` | **16.51:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Primary Text on Surface | `#0F172A` | `#FFFFFF` | **17.85:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Muted Text on Base | `#475569` | `#F4F6FB` | **7.01:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Muted Text on Surface | `#475569` | `#FFFFFF` | **7.58:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Button Label on Accent | `#FFFFFF` | `#C2410C` | **5.18:1** | 4.5:1 (Body Text) | PASS (AA) |
+| Focus Ring against Base | `#C2410C` | `#F4F6FB` | **4.79:1** | 3.0:1 (Non-text UI) | PASS (AA) |
+| Focus Ring against Surface | `#C2410C` | `#FFFFFF` | **5.18:1** | 3.0:1 (Non-text UI) | PASS (AA) |
+| Status Badge (Success) | `#065F46` | `#FFFFFF` | **7.68:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Status Badge (Pending) | `#92400E` | `#FFFFFF` | **7.09:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| Status Badge (Error) | `#991B1B` | `#FFFFFF` | **8.31:1** | 4.5:1 (Body Text) | PASS (AAA) |
+| 404 Headline on Base | `#0F172A` | `#F4F6FB` | **16.51:1** | 3.0:1 (Large Text) | PASS (AAA) |
+
+### 2. Axe-Core Accessibility Audit
+
+Executed automated axe-core accessibility audits via Chrome DevTools Protocol against the running production server:
+
+| Surface & Theme | Critical | Serious | Moderate | Minor | Total Violations | Conformance |
+|---|---|---|---|---|---|---|
+| **Dashboard (Dark)** | 0 | 0 | 0 | 0 | **0** | PASS |
+| **Dashboard (Light)** | 0 | 0 | 0 | 0 | **0** | PASS |
+| **404 Page (Dark)** | 0 | 0 | 0 | 0 | **0** | PASS |
+| **404 Page (Light)** | 0 | 0 | 0 | 0 | **0** | PASS |
+
+### 3. Screenshots Captured
+
+Screenshots captured across viewports and saved to the artifact repository:
+1. `dashboard_desktop_1280_dark.png` (1280px Desktop, Dark Mode)
+2. `dashboard_desktop_1280_light.png` (1280px Desktop, Light Mode)
+3. `dashboard_mobile_375_dark.png` (375px Mobile, Dark Mode)
+4. `dashboard_mobile_375_light.png` (375px Mobile, Light Mode)
+5. `not_found_desktop_1280_dark.png` (1280px Desktop, 404 Page Dark Mode)
+6. `not_found_desktop_1280_light.png` (1280px Desktop, 404 Page Light Mode)
+
+### 4. HTTP 404 Route Verification
+
+Command:
+```bash
+curl -i http://localhost:3000/does-not-exist
+```
+Output:
+```http
+HTTP/1.1 404 Not Found
+```
+
+### 5. Reduced-Motion Check
+
+Evaluated computed style under `prefers-reduced-motion: reduce`:
+```json
+{
+  "mediaMatches": true,
+  "transitionDuration": "1e-05s"
+}
+```
+All CSS animations and transitions are damped to `none !important` and `0.01ms !important`, and numerical count animations immediately settle on the target value.
+
+### 6. Updated 404 Integration Test
+
+Test file: `tests/integration/not-found.test.ts`
+- Verifies exactly one `<h1>` heading with text `"This page isn't in the ledger."`
+- Verifies `aria-hidden="true"` on the 404 background numeral and vector glyphs in upper area.
+- Verifies both buttons with >= 44px min-target classes: primary (`/`) and secondary (`github.com/...#readme`).
+- Confirms page renders standalone without needing dashboard metrics or props.
+- Verifies route-level HTTP 404 status check on unknown routes (`/does-not-exist`).
+
+### 7. Test Suite and Build Summary
+
+- **Vitest Suite**:
+  ```
+  Test Files  36 passed (36)
+       Tests  113 passed (113)
+    Duration  26.33s
+  ```
+- **Next.js Production Build**:
+  ```
+  ✓ Compiled successfully in 3.4s
+  Route (app)
+  ┌ ○ /                                    8.18 kB         111 kB
+  ├ ○ /_not-found                            140 B         103 kB
+  ```

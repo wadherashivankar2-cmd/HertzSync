@@ -38,7 +38,7 @@ export function EventLog({ logs }: EventLogProps) {
   }
 
   return (
-    <div className="bg-surface border border-slate-800 rounded-xl p-5 shadow-lg">
+    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
@@ -55,7 +55,7 @@ export function EventLog({ logs }: EventLogProps) {
         tabIndex={0}
         role="region"
         aria-label="System audit log feed"
-        className="bg-slate-950/80 rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-xs text-slate-300 divide-y divide-slate-800/50 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500"
+        className="bg-surface-alt rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-xs text-text divide-y divide-border-subtle border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
       >
         {logs.length === 0 ? (
           <div className="py-6 text-center text-muted italic">
@@ -73,7 +73,7 @@ export function EventLog({ logs }: EventLogProps) {
               <div
                 key={log.id}
                 className={`py-1.5 px-1 flex items-start gap-2 ${
-                  isError ? "text-red-300" : "text-slate-300"
+                  isError ? "text-rose-600 dark:text-rose-300" : "text-text"
                 }`}
               >
                 <span className="text-muted text-[11px] select-none shrink-0">#{log.id}</span>
@@ -86,4 +86,3 @@ export function EventLog({ logs }: EventLogProps) {
     </div>
   );
 }
-

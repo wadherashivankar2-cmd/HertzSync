@@ -3,24 +3,145 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0F172A;
-  --surface: #1E293B;
+  color-scheme: dark;
+
+  /* Role 1 base (full screen): #0A0F1F */
+  --base: #0A0F1F;
+
+  /* Role 2 matching fade: #1B2A6B at about 35% opacity */
+  --role2-fade: rgba(27, 42, 107, 0.35);
+
+  /* Role 3 warm accent: #FF8A4C, glows at 15% opacity or less, under 24px */
+  --accent: #FF8A4C;
+  --accent-glow: rgba(255, 138, 76, 0.15);
+  --accent-text: #0A0F1F;
+
+  /* Surfaces & Borders (cards and panels keep solid surfaces) */
+  --surface: #131B35;
+  --surface-hover: #192345;
+  --surface-alt: #0D1429;
+  --border: #222F5A;
+  --border-subtle: #182244;
+
+  /* Text: #F1F5F9 (primary), #94A3B8 (muted) */
   --text: #F1F5F9;
   --muted: #94A3B8;
-  --accent: #14B8A6;
-  --pending: #F59E0B;
-  --failed: #EF4444;
-  --info: #38BDF8;
 
-  --background: var(--bg);
+  /* Status Colors (High contrast WCAG AAA) */
+  --success-text: #6EE7B7;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-border: rgba(16, 185, 129, 0.35);
+
+  --warning-text: #FCD34D;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.35);
+
+  --danger-text: #FCA5A5;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.35);
+
+  --info-text: #7DD3FC;
+  --info-bg: rgba(56, 189, 248, 0.12);
+  --info-border: rgba(56, 189, 248, 0.35);
+
+  --bg: var(--base);
+  --background: var(--base);
+  --foreground: var(--text);
+}
+
+[data-theme="light"],
+:root.light {
+  color-scheme: light;
+
+  /* Role 1 base: #F4F6FB */
+  --base: #F4F6FB;
+
+  /* Role 2 fade: #C9D3F5 at about 40% opacity */
+  --role2-fade: rgba(201, 211, 245, 0.40);
+
+  /* Role 3 accent: #C2410C (darker coral, for contrast on white) */
+  --accent: #C2410C;
+  --accent-glow: rgba(194, 65, 12, 0.15);
+  --accent-text: #FFFFFF;
+
+  /* Surfaces & Borders (solid white surfaces so numbers stay on solid colour) */
+  --surface: #FFFFFF;
+  --surface-hover: #F8FAFC;
+  --surface-alt: #EDF2F9;
+  --border: #CBD5E1;
+  --border-subtle: #E2E8F0;
+
+  /* Text: #0F172A (primary), #475569 (muted) */
+  --text: #0F172A;
+  --muted: #475569;
+
+  /* Status Colors (High contrast WCAG AAA) */
+  --success-text: #065F46;
+  --success-bg: rgba(5, 150, 105, 0.10);
+  --success-border: rgba(5, 150, 105, 0.35);
+
+  --warning-text: #92400E;
+  --warning-bg: rgba(217, 119, 6, 0.10);
+  --warning-border: rgba(217, 119, 6, 0.35);
+
+  --danger-text: #991B1B;
+  --danger-bg: rgba(220, 38, 38, 0.10);
+  --danger-border: rgba(220, 38, 38, 0.35);
+
+  --info-text: #0369A1;
+  --info-bg: rgba(2, 132, 199, 0.10);
+  --info-border: rgba(2, 132, 199, 0.35);
+
+  --bg: var(--base);
+  --background: var(--base);
   --foreground: var(--text);
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background-color: var(--background);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
+}
+
+/* 200ms theme transition across surfaces, text, and borders */
+html,
+body,
+header,
+main,
+section,
+div,
+span,
+p,
+h1,
+h2,
+h3,
+button,
+input,
+th,
+td,
+table,
+a {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+/* Buttons lift on hover */
+.btn-lift {
+  transition: transform 150ms ease, background-color 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.btn-lift:hover {
+  transform: translateY(-1px);
+}
+
+/* Role 3 focus ring across interactive elements */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Tabular figures for large metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 code, kbd, samp, pre, .font-mono {
@@ -42,12 +163,17 @@ code, kbd, samp, pre, .font-mono {
   animation: pulse-flow 1.5s ease-in-out infinite;
 }
 
+/* Reduced motion overrides */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition: none !important;
     transition-duration: 0.01ms !important;
+    transform: none !important;
     scroll-behavior: auto !important;
   }
 }
-

@@ -27,7 +27,7 @@ interface BatchTableProps {
 
 export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
   return (
-    <div className="bg-surface border border-slate-800 rounded-xl p-5 shadow-lg">
+    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
@@ -46,10 +46,10 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
         tabIndex={0}
         role="region"
         aria-label="Recent settlement batches"
-        className="overflow-x-auto max-h-[420px] rounded-lg border border-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500"
+        className="overflow-x-auto max-h-[420px] rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
       >
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="sticky top-0 bg-slate-900 border-b border-slate-800 z-10">
+          <thead className="sticky top-0 bg-surface-alt border-b border-border z-10">
             <tr>
               <th scope="col" className="py-3 px-3.5 font-semibold text-muted uppercase tracking-wider">
                 Batch ULID
@@ -71,11 +71,11 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 bg-surface">
+          <tbody className="divide-y divide-border-subtle bg-surface">
             {batches.length === 0 && !isLoading ? (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-muted">
-                  <div className="text-sm font-medium text-slate-300">No payments yet.</div>
+                  <div className="text-sm font-medium text-text">No payments yet.</div>
                   <div className="text-xs text-muted mt-1">
                     Start the device simulator to see events arrive.
                   </div>
@@ -83,12 +83,12 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
               </tr>
             ) : (
               batches.map((batch) => (
-                <tr key={batch.id} className="hover:bg-slate-850/50 transition-colors">
+                <tr key={batch.id} className="hover:bg-surface-hover transition-colors">
                   <td className="py-3 px-3.5 font-mono text-text whitespace-nowrap font-medium">
                     {batch.id}
                   </td>
-                  <td className="py-3 px-3.5 text-slate-200 whitespace-nowrap">
-                    <span className="font-medium text-text">{batch.payeeLabel}</span>
+                  <td className="py-3 px-3.5 text-text whitespace-nowrap">
+                    <span className="font-medium">{batch.payeeLabel}</span>
                     {batch.payeeAddress && (
                       <span className="block text-[11px] font-mono text-muted truncate max-w-[140px]" title={batch.payeeAddress}>
                         {batch.payeeAddress.slice(0, 4)}...{batch.payeeAddress.slice(-4)}
@@ -98,25 +98,25 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
                   <td className="py-3 px-3.5 text-right font-mono text-text">
                     {batch.eventCount}
                   </td>
-                  <td className="py-3 px-3.5 text-right font-mono font-medium text-text">
+                  <td className="py-3 px-3.5 text-right font-mono text-text font-semibold">
                     {batch.totalSol}
                   </td>
                   <td className="py-3 px-3.5 whitespace-nowrap">
                     <StatusBadge state={batch.state} />
                   </td>
-                  <td className="py-3 px-3.5 whitespace-nowrap">
-                    {batch.explorerUrl ? (
+                  <td className="py-3 px-3.5 whitespace-nowrap font-mono text-xs">
+                    {batch.signature ? (
                       <a
-                        href={batch.explorerUrl}
+                        href={batch.explorerUrl || `https://explorer.solana.com/tx/${batch.signature}?cluster=devnet`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-info hover:text-sky-300 transition-colors font-mono underline text-xs"
+                        className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded p-1"
                       >
-                        <span>View on DevNet</span>
+                        <span>{batch.signature.slice(0, 6)}...{batch.signature.slice(-4)}</span>
                         <span aria-hidden="true">↗</span>
                       </a>
                     ) : (
-                      <span className="text-muted text-xs italic">Pending Broadcast</span>
+                      <span className="text-muted italic">Pending signature</span>
                     )}
                   </td>
                 </tr>
@@ -128,4 +128,3 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
     </div>
   );
 }
-

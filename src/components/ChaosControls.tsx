@@ -64,17 +64,17 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
   };
 
   return (
-    <div className="bg-surface border border-amber-600/30 rounded-xl p-5 shadow-lg">
+    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
-          <h2 className="text-sm font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-warning-text uppercase tracking-wider flex items-center gap-2">
             <span>Chaos & Fault Injection</span>
-            <span className="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded border border-amber-700/50">
+            <span className="text-[10px] bg-warning-bg text-warning-text px-2 py-0.5 rounded border border-warning-border">
               Dev Only
             </span>
           </h2>
           <p className="text-xs text-muted mt-0.5">
-            Controls write directly to SQLite <code className="text-amber-300">system_state</code> to alter worker RPC router behavior.
+            Controls write directly to SQLite <code className="text-[var(--accent)]">system_state</code> to alter worker RPC router behavior.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
             type="password"
             value={adminKey}
             onChange={(e) => setAdminKey(e.target.value)}
-            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-text font-mono w-36 focus:outline-none focus:border-amber-500"
+            className="min-h-[44px] bg-surface-alt border border-border rounded px-3 py-1.5 text-xs text-text font-mono w-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             placeholder="ADMIN_API_KEY"
           />
         </div>
@@ -97,53 +97,51 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
         <button
           onClick={() => applyChaos("down")}
           disabled={isSubmitting}
-          className="px-3 py-2 bg-red-950/70 hover:bg-red-900 border border-red-700/60 rounded-lg text-xs font-medium text-red-200 transition-colors disabled:opacity-50 text-center"
+          className="min-h-[44px] px-3.5 py-2.5 bg-danger-bg hover:opacity-90 border border-danger-border rounded-lg text-xs font-semibold text-danger-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
         >
-          Simulate network outage
+          Simulate Outage
         </button>
 
         <button
           onClick={() => applyChaos("off")}
           disabled={isSubmitting}
-          className="px-3 py-2 bg-teal-950/70 hover:bg-teal-900 border border-teal-700/60 rounded-lg text-xs font-medium text-teal-200 transition-colors disabled:opacity-50 text-center"
+          style={{ boxShadow: "0 0 20px 0 var(--accent-glow)" }}
+          className="min-h-[44px] px-3.5 py-2.5 bg-success-bg hover:opacity-90 border border-success-border rounded-lg text-xs font-semibold text-success-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
         >
-          Restore network
+          Restore Network
         </button>
 
         <button
           onClick={() => applyChaos("lie")}
           disabled={isSubmitting}
-          className="px-3 py-2 bg-amber-950/70 hover:bg-amber-900 border border-amber-700/60 rounded-lg text-xs font-medium text-amber-200 transition-colors disabled:opacity-50 text-center"
+          className="min-h-[44px] px-3.5 py-2.5 bg-warning-bg hover:opacity-90 border border-warning-border rounded-lg text-xs font-semibold text-warning-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 text-center flex items-center justify-center"
         >
-          Make one endpoint lie
+          Force Lying RPC
         </button>
 
         <button
-          onClick={() => setShowBurstCommand(!showBurstCommand)}
-          className="px-3 py-2 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 transition-colors text-center"
+          onClick={() => setShowBurstCommand((prev) => !prev)}
+          className="min-h-[44px] px-3.5 py-2.5 bg-surface-alt hover:bg-surface-hover border border-border rounded-lg text-xs font-semibold text-text transition-all btn-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] text-center flex items-center justify-center"
         >
-          Burst 1,000 events
+          Burst 1,000 CLI
         </button>
       </div>
 
       {showBurstCommand && (
-        <div className="mt-3 p-3 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300">
-          <div className="font-semibold text-text mb-1">Trigger 1,000-Event Burst:</div>
-          <p className="text-muted mb-2">
-            Per Blueprint safety specifications, high-throughput bursts are dispatched via the simulator CLI command on the host machine:
-          </p>
-          <div className="bg-black/50 p-2 rounded font-mono text-teal-300 select-all border border-slate-800">
-            node node_modules/vite-node/vite-node.mjs scripts/device-sim.ts --mode burst --count 1000
-          </div>
+        <div className="mt-3 p-3 bg-surface-alt border border-border rounded-lg text-xs font-mono text-text">
+          <div className="text-[11px] text-muted mb-1">Run in a separate terminal:</div>
+          <code className="text-[var(--accent)] break-all select-all">
+            npm run sim -- --mode=burst --count=1000 --interval=0
+          </code>
         </div>
       )}
 
       {feedback && (
         <div
-          className={`mt-3 p-2.5 rounded-lg text-xs font-medium border ${
+          className={`mt-3 p-3 rounded-lg text-xs border ${
             feedback.isError
-              ? "bg-red-950/60 text-red-300 border-red-800"
-              : "bg-teal-950/60 text-teal-300 border-teal-800"
+              ? "bg-danger-bg border-danger-border text-danger-text"
+              : "bg-success-bg border-success-border text-success-text"
           }`}
         >
           {feedback.message}
@@ -152,4 +150,3 @@ export function ChaosControls({ endpoints, chaosEnabled, onRefresh }: ChaosContr
     </div>
   );
 }
-

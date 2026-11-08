@@ -18,40 +18,40 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
     if (ep.chaosMode === "down" || ep.state === "down") {
       return {
         label: "CHAOS: DOWN",
-        className: "bg-red-950/60 text-red-300 border-red-700/60",
-        dot: "bg-red-400",
+        className: "bg-danger-bg text-danger-text border-danger-border",
+        dot: "bg-danger-text",
       };
     }
     if (ep.chaosMode === "lie") {
       return {
         label: "CHAOS: LYING",
-        className: "bg-amber-950/60 text-amber-300 border-amber-700/60",
-        dot: "bg-amber-400",
+        className: "bg-warning-bg text-warning-text border-warning-border",
+        dot: "bg-warning-text",
       };
     }
     if (ep.state === "open") {
       return {
         label: "BREAKER OPEN",
-        className: "bg-red-950/60 text-red-300 border-red-700/60",
-        dot: "bg-red-400",
+        className: "bg-danger-bg text-danger-text border-danger-border",
+        dot: "bg-danger-text",
       };
     }
     if (ep.state === "half_open") {
       return {
         label: "PROBING (HALF-OPEN)",
-        className: "bg-amber-950/60 text-amber-300 border-amber-700/60",
-        dot: "bg-amber-400",
+        className: "bg-warning-bg text-warning-text border-warning-border",
+        dot: "bg-warning-text",
       };
     }
     return {
       label: "HEALTHY (CLOSED)",
-      className: "bg-teal-950/60 text-teal-300 border-teal-700/60",
-      dot: "bg-teal-400",
+      className: "bg-success-bg text-success-text border-success-border",
+      dot: "bg-success-text",
     };
   };
 
   return (
-    <div className="bg-surface border border-slate-800 rounded-xl p-5 shadow-lg">
+    <div className="bg-surface border border-border rounded-xl p-5 shadow-lg transition-colors duration-200">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-text uppercase tracking-wider">
           RPC Router Endpoints
@@ -72,7 +72,7 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
           return (
             <div
               key={ep.url}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-lg gap-2"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-surface-alt border border-border rounded-lg gap-2 transition-colors duration-200"
             >
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-mono text-text truncate" title={ep.url}>
@@ -84,7 +84,7 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
               </div>
               <div>
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border ${badge.className}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border ${badge.className}`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
                   {badge.label}
@@ -97,4 +97,3 @@ export function EndpointPanel({ endpoints }: EndpointPanelProps) {
     </div>
   );
 }
-

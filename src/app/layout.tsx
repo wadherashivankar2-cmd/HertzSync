@@ -12,11 +12,40 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased min-h-screen bg-[#0F172A] text-[#F1F5F9]">
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('tricklesettle-theme');
+                  var theme = saved;
+                  if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                  }
+                  if (theme === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.classList.add('light');
+                  } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.classList.remove('light');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="antialiased min-h-screen bg-bg text-text selection:bg-[var(--accent)] selection:text-[var(--accent-text)]">
+        {/* Role 2 decorative background fade: covers bottom 28% of viewport, pointer-events none */}
+        <div
+          className="fixed inset-x-0 bottom-0 h-[28vh] pointer-events-none z-0"
+          aria-hidden="true"
+          style={{ background: "linear-gradient(to top, var(--role2-fade), transparent)" }}
+        />
+        <div className="relative z-10">{children}</div>
       </body>
     </html>
   );
 }
-

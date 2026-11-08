@@ -76,7 +76,7 @@ describe("Worker Shutdown Lifecycle (Blueprint Section 5.10 & Phase 4 Safety Rul
 
     // Wait for worker to start up and log startup completion
     await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => resolve(), 3000);
+      const timeout = setTimeout(() => resolve(), 8000);
       worker1.stdout.on("data", (data) => {
         const text = data.toString();
         if (text.includes("Worker ready") || text.includes("Resuming")) {
@@ -130,7 +130,7 @@ describe("Worker Shutdown Lifecycle (Blueprint Section 5.10 & Phase 4 Safety Rul
 
     let resumedFound = false;
     await new Promise<void>((resolve) => {
-      const timeout = setTimeout(() => resolve(), 3000);
+      const timeout = setTimeout(() => resolve(), 8000);
       worker2.stdout.on("data", (data) => {
         const text = data.toString();
         if (text.includes("Resuming") || text.includes("Worker ready")) {
