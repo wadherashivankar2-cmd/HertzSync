@@ -1,9 +1,7 @@
 # HertzSync
 
 > **Durable micro-settlement for DePIN devices on Solana DevNet.**
-> Nothing lost. Nothing paid twice. Every event reconciled.
-
-**Demo video:** [![Watch the 90-second demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/hqdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+> Nothing lost. Nothing paid twice, on the ledger. Every event reconciled.
 
 **Repository:** https://github.com/wadherashivankar2-cmd/HertzSync
 
@@ -109,9 +107,9 @@ HertzSync is built on the principle that **the record must exist before the mone
 |---|---|---|---|
 | Fee per 1-cent event | Full network fee per event | Low, but lost events on outage | One transaction per batch |
 | Behaviour during RPC outage | Events fail or block the device | Events held in memory, lost on crash | Events persisted in SQLite, survive crashes |
-| Double-payment risk on retry | High unless carefully handled | Medium | Retries resend the identical signed transaction, and only rebuild after proven expiry |
+| Double-payment risk on retry | High unless carefully handled | Medium | Retries resend the identical signed transaction, and only rebuild after proven expiry (`tests/unit/retry-policy.test.ts`) |
 | Forged events | Depends on the application | Depends on the application | Rejected at ingest by Ed25519 verification |
-| Duplicate events from devices | Depends on the application | Depends on the application | Idempotent key `(device, epoch, seq)`, same content returns 200, conflicting content returns 409 |
+| Duplicate events from devices | Depends on the application | Depends on the application | Idempotent key `(device, epoch, seq)`: same content returns 200, conflicting content returns 409 |
 | Proof that the books balance | Usually none | Usually none | Live reconciliation: generated = paid + waiting + review, lost = 0 |
 | Chain safety | Depends on configuration | Depends on configuration | Refuses to start unless the genesis hash matches DevNet |
 
@@ -146,26 +144,31 @@ flowchart LR
 ---
 
 ## Architecture
+
+```
 Device (simulated Ed25519 signer)
-│ POST /api/v1/events (API key + signature)
-▼
-┌──────────────────────────┐ ┌────────────────────────────┐
-│ Next.js app (port 3000) │ │ Settlement worker │
-│ - ingest API │ │ - batcher │
-│ - metrics / batches API │ │ - settle (retry rules) │
-│ - operator dashboard │ │ - reconciliation │
-│ - chaos controls (dev) │ │ - graceful shutdown │
-└────────────┬─────────────┘ └──────────────┬─────────────┘
-│ │
-└──────────► SQLite (data/trickle.db, WAL) ◄──────┘
-events, batches, counters, system_state,
-rate_windows, reconciliations, audit_log
-│
-▼
-Solana DevNet RPC router
-(two endpoints, circuit breakers, failover)
+        │  POST /api/v1/events  (API key + signature)
+        ▼
+┌──────────────────────────┐        ┌────────────────────────────┐
+│ Next.js app (port 3000)  │        │ Settlement worker          │
+│ - ingest API             │        │ - batcher                  │
+│ - metrics / batches API  │        │ - settle (retry rules)     │
+│ - operator dashboard     │        │ - reconciliation           │
+│ - chaos controls (dev)   │        │ - graceful shutdown        │
+└────────────┬─────────────┘        └──────────────┬─────────────┘
+             │                                      │
+             └──────────►  SQLite (data/trickle.db, WAL)  ◄────────┘
+                           events, batches, counters, system_state,
+                           rate_windows, reconciliations, audit_log
+                                        │
+                                        ▼
+                         Solana DevNet RPC router
+                         (two endpoints, circuit breakers, failover)
+```
 
 **Single host by design.** Both processes share one SQLite file. Shared state, such as circuit breaker status and chaos flags, lives in SQLite, never in process memory. This is what lets a button in the dashboard change the worker's behaviour.
+
+---
 
 ---
 
@@ -214,17 +217,16 @@ Every claim below can be reproduced from this repository.
 
 | Check | Result | Where to look |
 |---|---|---|
-| Unit, integration, security, and chaos tests | 113 tests in 36 files, all passing | `npm test`, see [TESTS.md](TESTS.md) |
-| Three consecutive full runs | 109/109, then 113/113 after later additions, no flakes recorded | [TESTS.md](TESTS.md) |
+| Unit, integration, security, and chaos tests | 113 tests in 36 files passing on the last full run | `npm test`, see [TESTS.md](TESTS.md) |
 | Outage test | 10 events queued during a 20-second outage, lost = 0 | `tests/chaos/outage.test.ts` |
 | Crash test | SIGKILL during a live batch, restart resumes it, same signature and serialized transaction, no rebuild | `tests/chaos/crash-midbatch.test.ts` |
-| Burst test | 1,000 events, zero drops, local ingest p95 under 20 ms, peak WAL recorded | `tests/load/burst.test.ts` |
+| Burst test | 1,000 events, zero drops, local ingest p95 of 7.45 ms and 15.5 ms across two runs, peak WAL recorded | `tests/load/burst.test.ts` |
 | Settled demo data | 65 events received, 65 paid, 0 waiting, 0 lost, 2 batches on DevNet | Dashboard, or `npm run report` |
 | Production dependencies | 0 critical, 1 high (approved exception), 5 moderate | `npm audit --omit=dev`, [SECURITY.md](SECURITY.md) |
 | Mainnet guard | Refuses to start unless the genesis hash matches DevNet | `tests/unit/config.test.ts` |
-| Accessibility | Automated axe-core run, zero violations recorded in both themes | [TESTS.md](TESTS.md) |
+| Accessibility | axe-core checked on the dashboard in both themes; results recorded in [TESTS.md](TESTS.md) | [TESTS.md](TESTS.md) |
 
-**Example settlement transactions (DevNet, finalized):**
+**Example settlement transactions (DevNet, finalised):**
 - https://explorer.solana.com/tx/3CLNQ4LrkUotzS5k6Ph583h3qqVnY4DEZfSm83aVUsCPZycTeA5txidsu93doUCS5L1BcDU7BQyo8q72LkbnJdcN?cluster=devnet
 - https://explorer.solana.com/tx/5hC4U8kozxdAQaFTABU6W8vSwRw97dmkKJ2wdUfWVRKVyr47pPZs2aSu7NPWQURKucJSWJ64mwmcHpAGbGarEuAo?cluster=devnet
 
@@ -268,7 +270,7 @@ This project was built with AI assistance, and the work is disclosed here so you
 - **What the AI did:** wrote most of the TypeScript and tests, drafted documentation, and produced verification reports.
 - **What the human did:** wrote the blueprint and its rules, chose the scope, reviewed each report against the acceptance criteria, ran the checks independently, and decided what to cut under time pressure.
 - **How outputs were checked:** tests were re-run locally, the database was queried directly, on-chain transactions were checked on the public Explorer, and reports were rejected when they contradicted the evidence. Several errors were caught this way, including a simulator signing bug, a duplicate-hash check that passed on data that contained duplicates, and an outage test that did not actually run an outage. Those fixes are recorded in [PROGRESS.md](PROGRESS.md) and [KNOWN_LIMITS.md](KNOWN_LIMITS.md).
-- **Where to be skeptical:** any AI-written claim should be verified by running the command it refers to. The commands are listed below for that purpose.
+- **Where to be skeptical:** any AI-written claim should be verified by running the command it refers to. The commands are listed in the commands reference below.
 
 ---
 
@@ -372,7 +374,7 @@ npm run start
 
 Open http://localhost:3000. The welcome page is the entry point, and the dashboard is at http://localhost:3000/dashboard.
 
-For development with hot reload, use `npm run dev` instead of build and start. The production build is what the demo video uses, because it does not show the development overlay.
+For development with hot reload, use `npm run dev` instead of build and start. The production build is what judges should use, because it does not show the development overlay.
 
 ### 8. Start the settlement worker
 
@@ -460,8 +462,8 @@ The project was renamed from TrickleSettle to **HertzSync** on 8 November 2026. 
 
 ---
 
-## Licence and credits
+## Licence
 
-- Author: Shivankar Wadhera
-- Licence: *add your chosen licence here, for example MIT*
-- Third-party UI: any component copied from a template library is listed here with its licence. If none were used, this line should say so.
+- **Author:** Shivankar Wadhera
+- **Licence:** Not yet chosen
+- **Third-party UI:** The welcome page layout was inspired by public shadcn/ui-style templates. No template code was copied.
