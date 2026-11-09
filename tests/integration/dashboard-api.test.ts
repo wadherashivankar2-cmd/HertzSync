@@ -274,4 +274,36 @@ describe("Dashboard APIs Integration (Blueprint Section 9 & Phase 6)", () => {
 
     db.close();
   });
+
+  it("returns verificationStatus 'pending' for non-confirmed batches and 'legacy' for confirmed batches with check_recorded 0", async () => {
+    const db = createDatabaseConnection(DASHBOARD_TEST_DB);
+    const now = Date.now();
+
+    // Insert a batch in state "submitted" with check_recorded 0
+    db.prepare(`
+      INSERT INTO batches (id, payee_id, total_lamports, event_count, events_hash, state, signature, serialized_tx, last_valid_block_height, attempts, check_recorded, created_at, updated_at)
+      VALUES ('batch_submitted_pending_01', 'payee_dash', 15000, 1, 'hash_pend', 'submitted', 'sig_pend_tx', 'raw_tx_pend', 500, 1, 0, ?, ?)
+    `).run(now, now);
+
+    const req = new NextRequest("http://localhost:3000/api/v1/batches?limit=10");
+    const apiRes = await getBatches(req);
+    expect(apiRes.status).toBe(200);
+
+    const apiBody = await apiRes.json();
+
+    // Confirm the submitted batch returns verificationStatus "pending"
+    const bSubmitted = apiBody.batches.find((b: any) => b.id === "batch_submitted_pending_01");
+    expect(bSubmitted).toBeDefined();
+    expect(bSubmitted.verificationStatus).toBe("pending");
+    expect(bSubmitted.checkRecorded).toBe(false);
+
+    // Confirm an existing confirmed batch with check_recorded 0 returns "legacy"
+    const bLegacy = apiBody.batches.find((b: any) => b.id === "01M6VDASHBOARDTEST00000000");
+    expect(bLegacy).toBeDefined();
+    expect(bLegacy.state).toBe("confirmed");
+    expect(bLegacy.checkRecorded).toBe(false);
+    expect(bLegacy.verificationStatus).toBe("legacy");
+
+    db.close();
+  });
 });

@@ -20,16 +20,39 @@ export interface BatchItem {
   updatedAt: number;
   independentCheck?: boolean;
   singleEndpointFallback?: boolean;
+  checkRecorded?: boolean;
+  verificationStatus?: "pending" | "two_endpoint" | "single_endpoint" | "legacy";
 }
 
 function BatchCrossCheckPill({
+  verificationStatus,
   independentCheck,
   singleEndpointFallback,
 }: {
+  verificationStatus?: "pending" | "two_endpoint" | "single_endpoint" | "legacy";
   independentCheck?: boolean;
   singleEndpointFallback?: boolean;
 }) {
-  if (independentCheck) {
+  const status =
+    verificationStatus ??
+    (independentCheck
+      ? "two_endpoint"
+      : singleEndpointFallback
+      ? "single_endpoint"
+      : "legacy");
+
+  if (status === "pending") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-border bg-surface text-muted whitespace-nowrap shrink-0"
+        aria-label="Not checked yet"
+      >
+        <span>Not checked yet</span>
+      </span>
+    );
+  }
+
+  if (status === "two_endpoint") {
     return (
       <span
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-success-border bg-surface text-success-text whitespace-nowrap shrink-0"
@@ -50,7 +73,7 @@ function BatchCrossCheckPill({
     );
   }
 
-  if (singleEndpointFallback) {
+  if (status === "single_endpoint") {
     return (
       <span
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-warning-border bg-surface text-warning-text whitespace-nowrap shrink-0"
@@ -159,6 +182,7 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
                       <div className="flex flex-col items-start gap-1">
                         <StatusBadge state={batch.state} className="whitespace-nowrap shrink-0" />
                         <BatchCrossCheckPill
+                          verificationStatus={batch.verificationStatus}
                           independentCheck={batch.independentCheck}
                           singleEndpointFallback={batch.singleEndpointFallback}
                         />

@@ -56,7 +56,7 @@ export function createDatabaseConnection(customDbPath?: string): Database.Databa
 /**
  * Startup migration for existing databases:
  * Checks PRAGMA table_info(batches) and adds missing cross-check columns
- * (independent_check, single_endpoint_fallback) with DEFAULT 0 without dropping or rewriting data.
+ * (independent_check, single_endpoint_fallback, check_recorded) with DEFAULT 0 without dropping or rewriting data.
  */
 export function migrateBatchesCrossCheckColumns(db: Database.Database): void {
   const tableExists = db
@@ -72,6 +72,9 @@ export function migrateBatchesCrossCheckColumns(db: Database.Database): void {
   }
   if (!columnNames.has("single_endpoint_fallback")) {
     db.exec("ALTER TABLE batches ADD COLUMN single_endpoint_fallback INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!columnNames.has("check_recorded")) {
+    db.exec("ALTER TABLE batches ADD COLUMN check_recorded INTEGER NOT NULL DEFAULT 0");
   }
 }
 

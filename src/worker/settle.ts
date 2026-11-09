@@ -464,7 +464,8 @@ export function markBatchConfirmed(
       SET state = 'confirmed',
           updated_at = ?,
           independent_check = ?,
-          single_endpoint_fallback = ?
+          single_endpoint_fallback = ?,
+          check_recorded = 1
       WHERE id = ?
     `).run(timestamp, independentCheck ? 1 : 0, singleEndpointFallback ? 1 : 0, batchId);
 

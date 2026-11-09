@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         b.attempts,
         b.independent_check,
         b.single_endpoint_fallback,
+        b.check_recorded,
         b.created_at,
         b.updated_at
       FROM batches b
@@ -30,24 +31,43 @@ export async function GET(req: NextRequest) {
     `).all(limit) as any[];
 
     return NextResponse.json({
-      batches: rows.map((row) => ({
-        id: row.id,
-        payeeId: row.payee_id,
-        payeeLabel: row.payee_label || row.payee_id,
-        payeeAddress: row.payee_address || "",
-        totalLamports: row.total_lamports,
-        totalSol: (row.total_lamports / 1e9).toFixed(row.total_lamports % 1e7 === 0 ? 2 : 4),
-        eventCount: row.event_count,
-        eventsHash: row.events_hash,
-        state: row.state,
-        signature: row.signature,
-        explorerUrl: row.signature ? `https://explorer.solana.com/tx/${row.signature}?cluster=devnet` : null,
-        attempts: row.attempts,
-        independentCheck: Boolean(row.independent_check),
-        singleEndpointFallback: Boolean(row.single_endpoint_fallback),
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      })),
+      batches: rows.map((row) => {
+        const checkRecorded = Boolean(row.check_recorded);
+        const independentCheck = Boolean(row.independent_check);
+        const singleEndpointFallback = Boolean(row.single_endpoint_fallback);
+
+        let verificationStatus: "pending" | "two_endpoint" | "single_endpoint" | "legacy";
+        if (row.state !== "confirmed") {
+          verificationStatus = "pending";
+        } else if (checkRecorded && independentCheck) {
+          verificationStatus = "two_endpoint";
+        } else if (checkRecorded && singleEndpointFallback) {
+          verificationStatus = "single_endpoint";
+        } else {
+          verificationStatus = "legacy";
+        }
+
+        return {
+          id: row.id,
+          payeeId: row.payee_id,
+          payeeLabel: row.payee_label || row.payee_id,
+          payeeAddress: row.payee_address || "",
+          totalLamports: row.total_lamports,
+          totalSol: (row.total_lamports / 1e9).toFixed(row.total_lamports % 1e7 === 0 ? 2 : 4),
+          eventCount: row.event_count,
+          eventsHash: row.events_hash,
+          state: row.state,
+          signature: row.signature,
+          explorerUrl: row.signature ? `https://explorer.solana.com/tx/${row.signature}?cluster=devnet` : null,
+          attempts: row.attempts,
+          independentCheck,
+          singleEndpointFallback,
+          checkRecorded,
+          verificationStatus,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        };
+      }),
     });
   } catch (err: any) {
     return NextResponse.json(
