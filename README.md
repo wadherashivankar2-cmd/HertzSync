@@ -69,6 +69,8 @@ Then open **http://localhost:3000**. The welcome page opens first. Click **Open 
 
 A fresh clone shows zero events until the simulator runs. That is intentional.
 
+> **Want to try the outage button?** The production server (`npm run start`) disables the chaos controls by design. Use the development server instead, after setting the admin key described in [Enable the outage demo](#enable-the-outage-demo). Run `npm run dev` in Terminal 1 in place of build and start.
+
 ---
 
 ## The problem
@@ -136,7 +138,7 @@ flowchart LR
 3. **Event is stored.** The event is inserted with state `queued` in the same transaction that updates the `generated_by_ingest` counter. A repeat with identical content returns 200 and is stored once.
 4. **Worker batches.** Every few seconds the worker takes queued events, groups them by payee, respects a maximum batch size and maximum lamport total, and writes a batch row in state `built`.
 5. **Worker settles.** The worker fetches a fresh blockhash immediately before signing, stores the signed transaction and its signature in SQLite, then submits it. It polls until the transaction is confirmed.
-6. **Outage handling.** If an RPC endpoint fails, a circuit breaker opens and traffic goes to the second endpoint. If every endpoint is unavailable, the batch stays in place, events keep arriving, and nothing is marked paid.
+6. **Outage handling.** If an RPC endpoint fails, a circuit breaker opens and traffic goes to the next endpoint. If every endpoint is unavailable, the batch stays in place, events keep arriving, and nothing is marked paid.
 7. **Retry safety.** A batch whose signature is not yet confirmed is resent only as the identical signed transaction, while its blockhash is still valid. A new transaction is built only after the old one is proven to have expired.
 8. **Reconciliation.** The worker recomputes the equation on startup and on a schedule. The result is written to the `reconciliations` table, which the dashboard reads.
 9. **Restart after a crash.** If the process is killed, the next start resumes every batch in `submitted` or `retrying` before creating new batches.
@@ -187,7 +189,7 @@ Device (simulated Ed25519 signer)
 
 **Resilience**
 - RPC router with two endpoints, per-endpoint circuit breakers, timeouts, and failover.
-- Cross-check of confirmations against a second endpoint, so a single lying RPC cannot mark a batch as paid.
+- Cross-check of confirmations across two distinct endpoints. A batch is marked paid only when the two agree. If only one endpoint is reachable, the check falls back to that single answer and is reported as unverified (see [Known limits](#known-limits)).
 - Graceful shutdown on SIGINT and SIGTERM, with a second signal forcing exit.
 - Crash recovery verified with SIGKILL during a live batch.
 
@@ -216,6 +218,7 @@ Every claim below can be reproduced from this repository.
 | Check | Result | Where to look |
 |---|---|---|
 | Unit, integration, security, and chaos tests | 115 tests in 36 files passing on the last full run | `npm test`, see [TESTS.md](TESTS.md) |
+| Cross-check tests | Liar on endpoint 0 detected; mismatch refuses confirmation; single-endpoint fallback flagged | `tests/chaos/lying-rpc.test.ts` |
 | Outage test | 10 events queued during a 20-second outage, lost = 0 | `tests/chaos/outage.test.ts` |
 | Crash test | SIGKILL during a live batch, restart resumes it, same signature and serialized transaction, no rebuild | `tests/chaos/crash-midbatch.test.ts` |
 | Burst test | 1,000 events, zero drops, local ingest p95 of 7.45 ms and 15.5 ms across two runs, peak WAL recorded | `tests/load/burst.test.ts` |
@@ -241,7 +244,7 @@ HertzSync's threat model covers twenty named threats (S1–S20). Each has a cont
 
 **Development-only findings:** `npm install` reports two critical findings in Vitest and its worker pool. They are dev-only and are not installed by `npm install --omit=dev`.
 
-**Keys:** the treasury keypair (`keys/treasury.json`) and device keys (`keys/devices/`) are gitignored. Environment secrets live in `.env.local`, also gitignored.
+**Keys and secrets:** the treasury keypair (`keys/treasury.json`) and device keys (`keys/devices/`) are gitignored. Environment secrets live in `.env.local`, also gitignored. The shared `.env.example` contains placeholders only.
 
 ---
 
@@ -252,6 +255,8 @@ Stated plainly so you can judge the project on what it actually is:
 - **DevNet only.** It is not audited and does not handle real funds. The mainnet guard exists, but nothing here is production-ready.
 - **Simulated devices.** Device events come from a software simulator that signs with Ed25519 keys. No physical hardware has been tested.
 - **Single host.** One machine, one SQLite file, two processes. It is not designed for multi-server or serverless deployment.
+- **Cross-check needs two working endpoints.** The check only protects against a lying RPC when two distinct endpoints both answer. If only one is configured or reachable, the batch is confirmed on that single answer, the result is flagged `singleEndpointFallback: true` and `independentCheck: false`, and no cross-check has happened. The shipped default list contains two public DevNet endpoints, but availability and key requirements can change, so check both with a `getHealth` request before relying on the check.
+- **Mock endpoints in tests.** The lying-RPC tests use mock endpoints. They verify the logic, but the live two-network check has not been exercised against two real providers at the same time.
 - **Treasury is server-held.** Settlement is paid from one DevNet treasury keypair, not from each user's wallet.
 - **No sybil resistance.** Nothing stops a fake device from submitting valid-looking signed events. Device identity is registered by the operator.
 - **No user accounts.** The welcome page is an entry point, not a login. The admin key used by chaos controls is a development-only control.
@@ -267,7 +272,7 @@ This project was built with AI assistance, and the work is disclosed here so you
 - **Tools used:** Google Antigravity IDE with Gemini models as the coding agent, and Claude as an advisor for planning, review, and wording. The human author (Shivankar Wadhera) directed every phase, approved every gate, and ran the commands on their own machine.
 - **What the AI did:** wrote most of the TypeScript and tests, drafted documentation, and produced verification reports.
 - **What the human did:** wrote the blueprint and its rules, chose the scope, reviewed each report against the acceptance criteria, ran the checks independently, and decided what to cut under time pressure.
-- **How outputs were checked:** tests were re-run locally, the database was queried directly, on-chain transactions were checked on the public Explorer, and reports were rejected when they contradicted the evidence. Several errors were caught this way, including a simulator signing bug, a duplicate-hash check that passed on data that contained duplicates, and an outage test that did not actually run an outage. Those fixes are recorded in [PROGRESS.md](PROGRESS.md) and [KNOWN_LIMITS.md](KNOWN_LIMITS.md).
+- **How outputs were checked:** tests were re-run locally, the database was queried directly, on-chain transactions were checked on the public Explorer, and reports were rejected when they contradicted the evidence. Several errors were caught this way, including a simulator signing bug, a duplicate-hash check that passed on data that contained duplicates, an outage test that did not actually run an outage, and a cross-check that could reuse the same endpoint. Those fixes are recorded in [PROGRESS.md](PROGRESS.md) and [KNOWN_LIMITS.md](KNOWN_LIMITS.md).
 - **Where to be skeptical:** any AI-written claim should be verified by running the command it refers to. The commands are listed in the commands reference below.
 
 ---
@@ -333,7 +338,24 @@ Windows Command Prompt:
 copy .env.example .env.local
 ```
 
-The defaults point at DevNet and need no changes for the demo. Do not set `CLUSTER` to anything other than `devnet`; the app will refuse to start.
+The defaults point at DevNet and need no changes for the core demo. Do not set `CLUSTER` to anything other than `devnet`; the app will refuse to start.
+
+#### Enable the outage demo
+
+The outage buttons are off by default. To use them, edit `.env.local`:
+
+```dotenv
+CHAOS_ENABLED=true
+ADMIN_API_KEY=any-value-you-choose
+```
+
+Choose your own `ADMIN_API_KEY`. Do not reuse a value from anywhere public. Then:
+
+1. Run the development server (`npm run dev`), not the production server. The production server returns 404 for chaos routes by design (rule S13).
+2. On the dashboard, paste the **same** value into the **Admin Key** box in the Chaos & Fault Injection panel.
+3. Click **Simulate Outage**, then **Restore Network**.
+
+If you see "Missing or invalid authorization header," the Admin Key box does not match `ADMIN_API_KEY`. If you see "Chaos route is disabled," `CHAOS_ENABLED` is not `true`, or you are on the production server.
 
 ### 4. Generate the treasury keypair
 
@@ -365,14 +387,20 @@ This creates `data/trickle.db`, one demo business, two payees, and three simulat
 
 ### 7. Build and start the web app
 
+For the core demo (no outage buttons):
+
 ```bash
 npm run build
 npm run start
 ```
 
-Open http://localhost:3000. The welcome page is the entry point, and the dashboard is at http://localhost:3000/dashboard.
+For the outage demo (requires the settings in step 3):
 
-For development with hot reload, use `npm run dev` instead of build and start. The production build is what judges should use, because it does not show the development overlay.
+```bash
+npm run dev
+```
+
+Open http://localhost:3000. The welcome page is the entry point, and the dashboard is at http://localhost:3000/dashboard.
 
 ### 8. Start the settlement worker
 
@@ -392,7 +420,11 @@ In a third terminal:
 npm run sim
 ```
 
-The simulator signs events with each device's key and posts them to the ingest API. Optional flags: `--count=N` and `--interval=MS`.
+The simulator signs events with each device's key and posts them to the ingest API. It sends a fixed number of events and then exits. For a longer run, for example while testing an outage, use:
+
+```bash
+npm run sim -- --count=200 --interval=1000
+```
 
 Check the result:
 
@@ -413,8 +445,8 @@ Look for `events_queued` (goes to 0 as the worker settles), `events_paid` (rises
 | `npm run keygen` | Creates the DevNet treasury keypair in `keys/treasury.json` |
 | `npm run seed` | Creates the database, demo business, payees, and simulated devices |
 | `npm run build` | Production build of the web app |
-| `npm run start` | Serves the production build on port 3000 |
-| `npm run dev` | Development server with hot reload (port 3000) |
+| `npm run start` | Serves the production build on port 3000 (chaos routes disabled) |
+| `npm run dev` | Development server with hot reload on port 3000 (required for the outage demo) |
 | `npm run worker` | Starts the settlement worker: batching, settlement, reconciliation |
 | `npm run sim` | Sends simulated, Ed25519-signed device events to the ingest API |
 | `npm run report` | Prints a plain-English audit and reconciliation summary |
@@ -433,8 +465,11 @@ Look for `events_queued` (goes to 0 as the worker settles), `events_paid` (rises
 | Simulator prints `invalid_signature` | Device key files and database keys are out of step | Run `npm run seed` again on a fresh `data/trickle.db`, then restart the worker |
 | Worker reports `Treasury balance` warnings | The treasury has not been funded | Fund it with the `solana airdrop` command in step 5 |
 | Worker refuses to start with a genesis hash error | `CLUSTER` is not `devnet`, or the RPC points at another network | Check `.env.local`; the app is DevNet-only by design |
+| "Chaos route is disabled" on Simulate Outage | `CHAOS_ENABLED` is not `true`, or the production server is running | Set `CHAOS_ENABLED=true` in `.env.local`, then run `npm run dev` |
+| "Missing or invalid authorization header" on Simulate Outage | The Admin Key box does not match `ADMIN_API_KEY` | Paste the exact value from `.env.local` into the Admin Key box |
+| Waiting count does not rise during an outage | The simulator has stopped | Run `npm run sim -- --count=200 --interval=1000` and watch Received first |
 | Dashboard shows zero events | The simulator has not run yet | Run `npm run sim` and refresh |
-| A Next.js error badge appears on the page | Development mode overlay | Use `npm run build` and `npm run start` |
+| A Next.js error badge appears on the page | Development mode overlay | Use `npm run build` and `npm run start` for a clean view |
 | `better-sqlite3` fails to install on Windows | Missing C++ build tools | Install Visual Studio Build Tools with the C++ workload, then run `npm install` again |
 
 ---
