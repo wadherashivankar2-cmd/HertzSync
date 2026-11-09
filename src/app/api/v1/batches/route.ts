@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
         b.state,
         b.signature,
         b.attempts,
+        b.independent_check,
+        b.single_endpoint_fallback,
         b.created_at,
         b.updated_at
       FROM batches b
@@ -41,6 +43,8 @@ export async function GET(req: NextRequest) {
         signature: row.signature,
         explorerUrl: row.signature ? `https://explorer.solana.com/tx/${row.signature}?cluster=devnet` : null,
         attempts: row.attempts,
+        independentCheck: Boolean(row.independent_check),
+        singleEndpointFallback: Boolean(row.single_endpoint_fallback),
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       })),

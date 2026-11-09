@@ -283,9 +283,15 @@ export async function submitBatch(
   }
 
   // 7. Check if confirmed immediately (optimistic poll)
-  const { confirmed } = await crossCheckSignatureStatus(router, built.signature);
-  if (confirmed) {
-    markBatchConfirmed(db, batchId, now);
+  const check = await crossCheckSignatureStatus(router, built.signature);
+  if (check.confirmed) {
+    markBatchConfirmed(
+      db,
+      batchId,
+      now,
+      Boolean(check.independentCheck),
+      Boolean(check.singleEndpointFallback)
+    );
     return { batchId, status: "confirmed", signature: built.signature };
   }
 
@@ -322,10 +328,16 @@ export async function retryBatch(
   }
 
   // Step 1 & 2: Query signature status on two different RPC endpoints
-  const { confirmed } = await crossCheckSignatureStatus(router, signature);
-  if (confirmed) {
+  const check = await crossCheckSignatureStatus(router, signature);
+  if (check.confirmed) {
     logger.info(`Batch ${batchId} confirmed on chain. Finalizing payment.`);
-    markBatchConfirmed(db, batchId, Date.now());
+    markBatchConfirmed(
+      db,
+      batchId,
+      Date.now(),
+      Boolean(check.independentCheck),
+      Boolean(check.singleEndpointFallback)
+    );
     return { batchId, status: "confirmed", signature };
   }
 
@@ -439,13 +451,22 @@ export async function retryBatch(
   return { batchId, status: "expired_rebuilt", signature: built.signature };
 }
 
-function markBatchConfirmed(db: Database.Database, batchId: string, timestamp: number): void {
+export function markBatchConfirmed(
+  db: Database.Database,
+  batchId: string,
+  timestamp: number,
+  independentCheck: boolean = false,
+  singleEndpointFallback: boolean = false
+): void {
   const executeConfirmation = db.transaction(() => {
     db.prepare(`
       UPDATE batches
-      SET state = 'confirmed', updated_at = ?
+      SET state = 'confirmed',
+          updated_at = ?,
+          independent_check = ?,
+          single_endpoint_fallback = ?
       WHERE id = ?
-    `).run(timestamp, batchId);
+    `).run(timestamp, independentCheck ? 1 : 0, singleEndpointFallback ? 1 : 0, batchId);
 
     db.prepare(`
       UPDATE events

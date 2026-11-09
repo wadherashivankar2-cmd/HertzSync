@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS batches (
   serialized_tx TEXT,                     -- base64 signed tx, kept for safe resubmission
   last_valid_block_height INTEGER,        -- from the blockhash used to sign THIS tx
   attempts INTEGER NOT NULL DEFAULT 0,
+  independent_check INTEGER NOT NULL DEFAULT 0,
+  single_endpoint_fallback INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );

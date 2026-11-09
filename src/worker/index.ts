@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
-import { createDatabaseConnection, truncateCheckpoint } from "../lib/db";
+import { createDatabaseConnection, truncateCheckpoint, migrateBatchesCrossCheckColumns } from "../lib/db";
 import { RpcRouter } from "../lib/rpc-router";
 import { getConfig, Config } from "../lib/config";
 import { createBatches } from "./batcher";
@@ -55,6 +55,9 @@ export class SettlementWorker {
       throw new Error(`FATAL: Database integrity check failed: ${result}. Refusing to start worker.`);
     }
     logger.info("SQLite integrity check passed: ok");
+
+    // Ensure batches cross-check columns exist on existing databases
+    migrateBatchesCrossCheckColumns(this.db);
 
     // 2. DevNet cluster verification
     await this.router.verifyDevnetCluster();

@@ -47,7 +47,32 @@ export function createDatabaseConnection(customDbPath?: string): Database.Databa
     );
   }
 
+  // Startup migration: ensure batches cross-check columns exist on existing databases
+  migrateBatchesCrossCheckColumns(db);
+
   return db;
+}
+
+/**
+ * Startup migration for existing databases:
+ * Checks PRAGMA table_info(batches) and adds missing cross-check columns
+ * (independent_check, single_endpoint_fallback) with DEFAULT 0 without dropping or rewriting data.
+ */
+export function migrateBatchesCrossCheckColumns(db: Database.Database): void {
+  const tableExists = db
+    .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'batches'")
+    .get();
+  if (!tableExists) return;
+
+  const columns = db.prepare("PRAGMA table_info(batches)").all() as Array<{ name: string }>;
+  const columnNames = new Set(columns.map((c) => c.name));
+
+  if (!columnNames.has("independent_check")) {
+    db.exec("ALTER TABLE batches ADD COLUMN independent_check INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!columnNames.has("single_endpoint_fallback")) {
+    db.exec("ALTER TABLE batches ADD COLUMN single_endpoint_fallback INTEGER NOT NULL DEFAULT 0");
+  }
 }
 
 export function passiveCheckpoint(db: Database.Database): void {

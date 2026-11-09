@@ -1,11 +1,13 @@
 import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
+import { migrateBatchesCrossCheckColumns } from "../src/lib/db";
 
 export function migrate(db: Database.Database, schemaPath?: string) {
   const file = schemaPath || path.resolve(process.cwd(), "db/schema.sql");
   const sql = fs.readFileSync(file, "utf8");
   db.exec(sql);
+  migrateBatchesCrossCheckColumns(db);
 }
 
 if (process.argv[1] && process.argv[1].endsWith("migrate.ts")) {

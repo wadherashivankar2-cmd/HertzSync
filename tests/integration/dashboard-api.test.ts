@@ -2,8 +2,11 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import fs from "fs";
 import path from "path";
 import { NextRequest } from "next/server";
+import { Keypair } from "@solana/web3.js";
 import { createDatabaseConnection } from "../../src/lib/db";
 import { migrate } from "../../db/migrate";
+import { RpcRouter } from "../../src/lib/rpc-router";
+import { retryBatch } from "../../src/worker/settle";
 import { GET as getMetrics } from "../../src/app/api/v1/metrics/route";
 import { GET as getBatches } from "../../src/app/api/v1/batches/route";
 import { GET as getReconciliation } from "../../src/app/api/v1/reconciliation/route";
@@ -187,5 +190,88 @@ describe("Dashboard APIs Integration (Blueprint Section 9 & Phase 6)", () => {
     const restoredEp = restoredBody.rpc_endpoints.find((e: any) => e.url === targetEndpoint);
     expect(restoredEp.state).toBe("closed");
     expect(["off", "none"]).toContain(restoredEp.chaosMode);
+  });
+
+  it("stores single_endpoint_fallback = 1 and independent_check = 0 for single fallback, and independent_check = 1 for two-endpoint confirmation", async () => {
+    const db = createDatabaseConnection(DASHBOARD_TEST_DB);
+    const mockKeypair = Keypair.generate();
+    const now = Date.now();
+
+    // 1. Seed events and batches for both scenarios
+    db.prepare(`
+      INSERT INTO events (id, business_id, device_id, epoch, seq, amount_lamports, occurred_at, received_at, payload_hash, signature, state, batch_id)
+      VALUES ('dev_01:1:101', 'biz_dash', 'dev_01', 1, 101, 10000, ?, ?, 'h_fb', 'sig_fb', 'batched', 'batch_fallback_01')
+    `).run(now, now);
+
+    db.prepare(`
+      INSERT INTO batches (id, payee_id, total_lamports, event_count, events_hash, state, signature, serialized_tx, last_valid_block_height, attempts, created_at, updated_at)
+      VALUES ('batch_fallback_01', 'payee_dash', 10000, 1, 'hash_fb', 'submitted', 'sig_fb_tx', 'raw_tx_fb', 500, 1, ?, ?)
+    `).run(now, now);
+
+    db.prepare(`
+      INSERT INTO events (id, business_id, device_id, epoch, seq, amount_lamports, occurred_at, received_at, payload_hash, signature, state, batch_id)
+      VALUES ('dev_01:1:102', 'biz_dash', 'dev_01', 1, 102, 20000, ?, ?, 'h_q', 'sig_q', 'batched', 'batch_quorum_01')
+    `).run(now, now);
+
+    db.prepare(`
+      INSERT INTO batches (id, payee_id, total_lamports, event_count, events_hash, state, signature, serialized_tx, last_valid_block_height, attempts, created_at, updated_at)
+      VALUES ('batch_quorum_01', 'payee_dash', 20000, 1, 'hash_q', 'submitted', 'sig_q_tx', 'raw_tx_q', 500, 1, ?, ?)
+    `).run(now, now);
+
+    // 2. Settle batch 1 with single-endpoint router (single_endpoint_fallback = 1, independent_check = 0)
+    const singleRouter = new RpcRouter(db, ["https://api.devnet.solana.com"]);
+    singleRouter.callWithFailover = async (op) => {
+      return op({
+        getSignatureStatuses: async () => ({
+          value: [{ confirmationStatus: "confirmed", err: null }],
+        }),
+      } as any, "https://api.devnet.solana.com");
+    };
+
+    const res1 = await retryBatch(db, singleRouter, "batch_fallback_01", mockKeypair);
+    expect(res1.status).toBe("confirmed");
+
+    const batchFallback = db.prepare("SELECT state, independent_check, single_endpoint_fallback FROM batches WHERE id = 'batch_fallback_01'").get() as any;
+    expect(batchFallback.state).toBe("confirmed");
+    expect(batchFallback.single_endpoint_fallback).toBe(1);
+    expect(batchFallback.independent_check).toBe(0);
+
+    // 3. Settle batch 2 with dual-endpoint router (independent_check = 1, single_endpoint_fallback = 0)
+    const ep1 = "https://mock-ep-1.devnet.solana.com";
+    const ep2 = "https://mock-ep-2.devnet.solana.com";
+    const dualRouter = new RpcRouter(db, [ep1, ep2]);
+    dualRouter.callEndpoint = async (endpoint: string, op: any) => {
+      return op({
+        getSignatureStatuses: async () => ({
+          value: [{ confirmationStatus: "confirmed", err: null }],
+        }),
+      }, endpoint);
+    };
+
+    const res2 = await retryBatch(db, dualRouter, "batch_quorum_01", mockKeypair);
+    expect(res2.status).toBe("confirmed");
+
+    const batchQuorum = db.prepare("SELECT state, independent_check, single_endpoint_fallback FROM batches WHERE id = 'batch_quorum_01'").get() as any;
+    expect(batchQuorum.state).toBe("confirmed");
+    expect(batchQuorum.single_endpoint_fallback).toBe(0);
+    expect(batchQuorum.independent_check).toBe(1);
+
+    // 4. Verify GET /api/v1/batches exposes these fields
+    const req = new NextRequest("http://localhost:3000/api/v1/batches?limit=10");
+    const apiRes = await getBatches(req);
+    expect(apiRes.status).toBe(200);
+
+    const apiBody = await apiRes.json();
+    const bFallback = apiBody.batches.find((b: any) => b.id === "batch_fallback_01");
+    expect(bFallback).toBeDefined();
+    expect(bFallback.singleEndpointFallback).toBe(true);
+    expect(bFallback.independentCheck).toBe(false);
+
+    const bQuorum = apiBody.batches.find((b: any) => b.id === "batch_quorum_01");
+    expect(bQuorum).toBeDefined();
+    expect(bQuorum.singleEndpointFallback).toBe(false);
+    expect(bQuorum.independentCheck).toBe(true);
+
+    db.close();
   });
 });
