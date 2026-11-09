@@ -1,5 +1,7 @@
 # Test Log and Results
 
+Current status: **36 test files, 115 tests, all passing** (last full run, `npm test`). Earlier phase records below are kept as history and are labelled as such.
+
 ## Unit Tests
 - `tests/unit/canonical.test.ts`: 2 passed / 2 total (strict key order, whitespace omission, scrambled input order invariance)
 - `tests/unit/crypto.test.ts`: 4 passed / 4 total (Ed25519 signature verification, payload tampering rejection, key mismatch rejection, sha256 payload hash)
@@ -94,6 +96,10 @@
 - `tests/integration/metrics-endpoint.test.ts`: 2 passed / 2 total
   - GET /api/v1/metrics returns all Section 8.1 required keys and valid types
   - Dynamic derivation: metrics respond to database state changes without hardcoding
+- `tests/integration/not-found.test.ts`: 3 passed / 3 total
+  - Exactly one `<h1>` with text "This page isn't in the ledger."
+  - Decorative numerals and glyphs are `aria-hidden="true"`
+  - Route-level HTTP 404 on unknown routes
 
 ## Security Tests
 - `tests/security/ingest-security.test.ts`: 5 passed / 5 total
@@ -114,8 +120,10 @@
   - RPC down for simulated 60 seconds; events keep queuing; restore; drain; `recovery_seconds_last` recorded
 - `tests/chaos/crash-midbatch.test.ts`: 1 passed / 1 total
   - SIGKILL after submit, before confirm; restart; exactly one confirmed batch per event and 0 lost/duplicates
-- `tests/chaos/lying-rpc.test.ts`: 1 passed / 1 total
-  - Chaos `lie` mode; detects single lying RPC and refuses to mark batch confirmed or events paid
+- `tests/chaos/lying-rpc.test.ts`: 3 passed / 3 total
+  - Chaos `lie` mode on a single endpoint: detects the lying RPC and refuses to mark the batch confirmed or events paid
+  - Endpoint 0 returns "confirmed" and endpoint 1 returns "not found": mismatch flagged (`lied: true`), confirmation refused, `independentCheck: true`
+  - Endpoint 0 returns "confirmed" and endpoint 1 errors: `singleEndpointFallback: true`, `independentCheck: false`, reported as an unverified fallback
 
 ## Load Tests
 - `tests/load/burst.test.ts`: 1 passed / 1 total
@@ -128,10 +136,27 @@
   - Live Network Calls: 0 (Strict Zero DevNet calls via MockRpcRouter)
   - Reconciliation: generated=1000, accounted=1000, lost=0, duplicates=0, ok=true
 
+## Live DevNet Endpoint Check (manual)
+
+Date: 9 November 2026
+
+Both configured endpoints were queried directly with `getSignatureStatuses` (`searchTransactionHistory: true`):
+
+| Endpoint | Known finalized transaction | Random signature (64 bytes, base58) |
+|---|---|---|
+| https://api.devnet.solana.com | finalized | null |
+| https://solana-devnet.gateway.tatum.io | finalized | null |
+
+Also checked: `getHealth` on the Tatum endpoint without an API key returned `"result":"ok"`, and its `getGenesisHash` matched the DevNet genesis hash `EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG`.
+
+Limit: this confirms both endpoints answer correctly today. It does not cover an endpoint failing during a live batch, which is covered only by the mock-endpoint tests above.
+
 ## Clean-Clone Benchmark (Definition of Done Item 12)
 - Clean clone completed in about 2 minutes on the test machine (automated agent benchmark; human manual setup estimated at 5-10 minutes).
 
-## Phase 8 Test Hardening & Three Consecutive Test Runs
+## Historical: Phase 8 Test Hardening & Three Consecutive Test Runs
+
+Recorded at Phase 8, when the suite was 34 files and 109 tests. Kept for history; the current totals are in the header.
 
 Environment: `MAX_LIVE_TRANSFERS_PER_TEST_RUN=0`
 
@@ -141,19 +166,16 @@ Environment: `MAX_LIVE_TRANSFERS_PER_TEST_RUN=0`
 | **Run 2** | 2026-11-08 02:03:31 | 34 / 34 | 109 / 109 | 17.69s | `Test Files  34 passed (34) \| Tests  109 passed (109) \| Duration  17.69s` |
 | **Run 3** | 2026-11-08 02:04:34 | 34 / 34 | 109 / 109 | 16.67s | `Test Files  34 passed (34) \| Tests  109 passed (109) \| Duration  16.67s` |
 
-Consistency: 100% pass rate across all 3 consecutive runs (34 suites, 109 tests, 0 flakes, 0 failures).
+Consistency at that phase: 100% pass rate across all 3 consecutive runs (34 suites, 109 tests, 0 flakes, 0 failures).
 
 ## Dependency Audit Results (Phase 8 Definition of Done & Item 8)
 
 Command: `npm audit --omit=dev`
 - **Audit Assessment**: 0 critical; 1 high is an approved, documented exception (PostCSS build tooling within Next.js); 5 moderate in pinned @solana/web3.js 1.x dependencies. All documented with feature-usage analysis in SECURITY.md.
 - **Total Vulnerabilities**: 6 (0 critical, 1 high, 5 moderate)
-- **High Severity (1)**: `postcss` (<=8.5.22) via `next@15.5.29`. Formally reviewed and recorded as an approved exception on 7th Nov, 2026. Only used for build-time static CSS compilation.
+- **High Severity (1)**: `postcss` (<=8.5.22) via `next@15.5.29`. Formally reviewed and recorded as an approved exception on 7 November 2026. Only used for build-time static CSS compilation.
 - **Moderate Severity (5)**: `stream-json` and `uuid` via `jayson` inside pinned `@solana/web3.js` 1.x line (`^1.98.0`). Not exposed to untrusted external input.
 - **Critical Findings in Production**: 0.
-
----
-**Total: 109 passed / 109 tests across 34 test suites**
 
 ---
 
@@ -204,9 +226,10 @@ Executed automated axe-core accessibility audits via Chrome DevTools Protocol ag
 | **404 Page (Dark)** | 0 | 0 | 0 | 0 | **0** | PASS |
 | **404 Page (Light)** | 0 | 0 | 0 | 0 | **0** | PASS |
 
+Note: this audit predates the welcome-page changes. Re-run axe-core on `/welcome` and the dashboard before claiming it for the current build.
+
 ### 3. Screenshots Captured
 
-Screenshots captured across viewports and saved to the artifact repository:
 1. `dashboard_desktop_1280_dark.png` (1280px Desktop, Dark Mode)
 2. `dashboard_desktop_1280_light.png` (1280px Desktop, Light Mode)
 3. `dashboard_mobile_375_dark.png` (375px Mobile, Dark Mode)
@@ -216,11 +239,9 @@ Screenshots captured across viewports and saved to the artifact repository:
 
 ### 4. HTTP 404 Route Verification
 
-Command:
 ```bash
 curl -i http://localhost:3000/does-not-exist
 ```
-Output:
 ```http
 HTTP/1.1 404 Not Found
 ```
@@ -236,27 +257,30 @@ Evaluated computed style under `prefers-reduced-motion: reduce`:
 ```
 All CSS animations and transitions are damped to `none !important` and `0.01ms !important`, and numerical count animations immediately settle on the target value.
 
-### 6. Updated 404 Integration Test
+### 6. Test Suite and Build Summary (current)
 
-Test file: `tests/integration/not-found.test.ts`
-- Verifies exactly one `<h1>` heading with text `"This page isn't in the ledger."`
-- Verifies `aria-hidden="true"` on the 404 background numeral and vector glyphs in upper area.
-- Verifies both buttons with >= 44px min-target classes: primary (`/`) and secondary (`github.com/...#readme`).
-- Confirms page renders standalone without needing dashboard metrics or props.
-- Verifies route-level HTTP 404 status check on unknown routes (`/does-not-exist`).
+- **Vitest suite** (`npm test`, last full run):
 
-### 7. Test Suite and Build Summary
+```
+Test Files  36 passed (36)
+Tests  115 passed (115)
+Duration  26.31s
+```
 
-- **Vitest Suite**:
-  ```
-  Test Files  36 passed (36)
-       Tests  115 passed (115)
-    Duration  26.33s
-  ```
-- **Next.js Production Build**:
-  ```
-  ✓ Compiled successfully in 3.4s
-  Route (app)
-  ┌ ○ /                                    8.18 kB         111 kB
-  ├ ○ /_not-found                            140 B         103 kB
-  ```
+- **Next.js production build** (`npm run build`):
+
+```
+✓ Compiled successfully
+Route (app)
+┌ ○ /                                    2.47 kB         112 kB
+├ ○ /_not-found                            140 B         103 kB
+├ ƒ /api/v1/batches                        140 B         103 kB
+├ ƒ /api/v1/chaos                          140 B         103 kB
+├ ƒ /api/v1/events                         140 B         103 kB
+├ ƒ /api/v1/events/[id]                    140 B         103 kB
+├ ƒ /api/v1/metrics                        140 B         103 kB
+├ ƒ /api/v1/reconciliation                 140 B         103 kB
+├ ○ /dashboard                           2.47 kB         112 kB
+└ ○ /welcome                               162 B         106 kB
++ First Load JS shared by all             103 kB
+```
