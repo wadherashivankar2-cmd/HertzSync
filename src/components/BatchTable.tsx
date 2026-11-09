@@ -18,6 +18,58 @@ export interface BatchItem {
   attempts: number;
   createdAt: number;
   updatedAt: number;
+  independentCheck?: boolean;
+  singleEndpointFallback?: boolean;
+}
+
+function BatchCrossCheckPill({
+  independentCheck,
+  singleEndpointFallback,
+}: {
+  independentCheck?: boolean;
+  singleEndpointFallback?: boolean;
+}) {
+  if (independentCheck) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-success-border bg-surface text-success-text"
+        aria-label="Verified · 2 endpoints"
+      >
+        <svg
+          aria-hidden="true"
+          className="w-3 h-3 flex-shrink-0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Verified · 2 endpoints</span>
+      </span>
+    );
+  }
+
+  if (singleEndpointFallback) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-warning-border bg-surface text-warning-text"
+        aria-label="Single endpoint"
+      >
+        <span>Single endpoint</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-dashed border-border bg-surface text-muted"
+      title="Settled before per-batch check recording. Not necessarily verified or unverified."
+      aria-label="Legacy · not recorded"
+    >
+      <span>Legacy · not recorded</span>
+    </span>
+  );
 }
 
 interface BatchTableProps {
@@ -104,7 +156,13 @@ export function BatchTable({ batches, isLoading = false }: BatchTableProps) {
                       {batch.totalSol}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap text-[1.125rem]">
-                      <StatusBadge state={batch.state} />
+                      <div className="flex flex-col items-start gap-1">
+                        <StatusBadge state={batch.state} />
+                        <BatchCrossCheckPill
+                          independentCheck={batch.independentCheck}
+                          singleEndpointFallback={batch.singleEndpointFallback}
+                        />
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[1.125rem]">
                       {batch.signature ? (

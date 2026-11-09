@@ -1,6 +1,6 @@
 # Test Log and Results
 
-Current status: **36 test files, 115 tests, all passing** (last full run, `npm test`). Earlier phase records below are kept as history and are labelled as such.
+Current status: **36 test files, 116 tests, all passing** (last full run, `npm test`). Earlier phase records below are kept as history and are labelled as such.
 
 ## Unit Tests
 - `tests/unit/canonical.test.ts`: 2 passed / 2 total (strict key order, whitespace omission, scrambled input order invariance)
@@ -151,6 +151,8 @@ Also checked: `getHealth` on the Tatum endpoint without an API key returned `"re
 
 Limit: this confirms both endpoints answer correctly today. It does not cover an endpoint failing during a live batch, which is covered only by the mock-endpoint tests above.
 
+Gateway access terms can change. Re-check both endpoints before relying on them.
+
 ## Clean-Clone Benchmark (Definition of Done Item 12)
 - Clean clone completed in about 2 minutes on the test machine (automated agent benchmark; human manual setup estimated at 5-10 minutes).
 
@@ -259,12 +261,12 @@ All CSS animations and transitions are damped to `none !important` and `0.01ms !
 
 ### 6. Test Suite and Build Summary (current)
 
-- **Vitest suite** (`npm test`, last full run):
+- **Vitest suite** (`npm test`, last full run, measured on 9 November 2026):
 
 ```
 Test Files  36 passed (36)
-Tests  115 passed (115)
-Duration  26.31s
+Tests  116 passed (116)
+Duration  26.41s
 ```
 
 - **Next.js production build** (`npm run build`):
@@ -272,7 +274,7 @@ Duration  26.31s
 ```
 ✓ Compiled successfully
 Route (app)
-┌ ○ /                                    2.47 kB         112 kB
+┌ ○ /                                    2.47 kB         113 kB
 ├ ○ /_not-found                            140 B         103 kB
 ├ ƒ /api/v1/batches                        140 B         103 kB
 ├ ƒ /api/v1/chaos                          140 B         103 kB
@@ -280,7 +282,7 @@ Route (app)
 ├ ƒ /api/v1/events/[id]                    140 B         103 kB
 ├ ƒ /api/v1/metrics                        140 B         103 kB
 ├ ƒ /api/v1/reconciliation                 140 B         103 kB
-├ ○ /dashboard                           2.47 kB         112 kB
+├ ○ /dashboard                           2.47 kB         113 kB
 └ ○ /welcome                               162 B         106 kB
 + First Load JS shared by all             103 kB
 ```
