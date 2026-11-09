@@ -5,7 +5,7 @@ This document records the architectural and operational limitations of the Hertz
 ### RPC Failover, Quorum Cross-Checking & Provider Redundancy
 - **Dual-Endpoint Cross-Checking:** Two independent endpoints must agree on signature confirmation before a batch is marked confirmed. The first check runs on the primary endpoint (index 0), and the second check runs on a distinct secondary endpoint (index 1). Both endpoints must agree; if they disagree, the mismatch is flagged and confirmation is refused.
 - **Single-Endpoint Fallback:** A single endpoint cannot be cross-checked. If only one endpoint is configured or reachable, the worker falls back to that single endpoint and reports the check as `singleEndpointFallback` with `independentCheck` false.
-- **RPC Endpoint Verification:** Failover was verified with mock endpoints in tests, and against one real DevNet endpoint, not two independent real RPC providers.
+- **RPC Endpoint Verification:** Failover and the cross-check logic are tested with mock endpoints. On 9 November 2026, both configured DevNet endpoints were checked live (see TESTS.md), but a failure of one endpoint during a live batch has not been tested against real providers.
 - **Shared Provider Fate:** Public or private RPC providers may share common underlying network infrastructure, upstream validators, or cluster-wide congestion, meaning an outage on one provider may correlate with outages on others.
 
 ### Blockchain & Network Scope
