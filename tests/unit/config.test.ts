@@ -4,7 +4,7 @@ import { parseConfig, DEVNET_GENESIS_HASH } from "../../src/lib/config";
 describe("Configuration and Guardrails", () => {
   const validDevnetEnv = {
     CLUSTER: "devnet",
-    RPC_ENDPOINTS: "https://api.devnet.solana.com,https://devnet.helius-rpc.com",
+    RPC_ENDPOINTS: "https://api.devnet.solana.com,https://solana-devnet.gateway.tatum.io",
     ADMIN_API_KEY: "test_admin_key",
     NODE_ENV: "test",
   };

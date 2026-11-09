@@ -101,5 +101,74 @@ describe("Lying RPC Chaos Protection (Blueprint Section 5.4, 9, & S9)", () => {
     expect(event.state).not.toBe("paid");
     expect(event.state).toBe("batched");
   });
+
+  it("detects mismatch when endpoint 0 returns false confirmed and endpoint 1 returns not found", async () => {
+    router.setChaosMode(ep1, "off");
+    router.setChaosMode(ep2, "off");
+
+    // Endpoint 0 returns false 'confirmed', endpoint 1 returns not found (value: [null])
+    router.callEndpoint = async (endpoint: string, op: any) => {
+      if (endpoint === ep1) {
+        return op({
+          getSignatureStatuses: async () => ({
+            value: [{ confirmationStatus: "confirmed", err: null }],
+          }),
+        }, endpoint);
+      } else {
+        return op({
+          getSignatureStatuses: async () => ({
+            value: [null],
+          }),
+        }, endpoint);
+      }
+    };
+
+    router.callWithFailover = async (op) => {
+      return op({
+        getBlockHeight: async () => 250,
+        sendRawTransaction: async () => "sig_lying_tx_123",
+      } as any, ep2);
+    };
+
+    const check = await crossCheckSignatureStatus(router, "sig_lying_tx_123");
+    expect(check.lied).toBe(true);
+    expect(check.confirmed).toBe(false);
+    expect(check.independentCheck).toBe(true);
+    expect(check.singleEndpointFallback).toBe(false);
+
+    // Verify retryBatch refuses to mark the batch confirmed
+    const result = await retryBatch(db, router, "batch_lie_01", mockKeypair);
+    expect(result.status).not.toBe("confirmed");
+
+    const batch = db.prepare("SELECT state FROM batches WHERE id = 'batch_lie_01'").get() as any;
+    expect(batch.state).not.toBe("confirmed");
+
+    const event = db.prepare("SELECT state FROM events WHERE id = 'ev_lie_01'").get() as any;
+    expect(event.state).not.toBe("paid");
+    expect(event.state).toBe("batched");
+  });
+
+  it("flags single-endpoint fallback when endpoint 0 returns confirmed and endpoint 1 returns an error", async () => {
+    router.setChaosMode(ep1, "off");
+    router.setChaosMode(ep2, "off");
+
+    // Endpoint 0 returns confirmed, endpoint 1 throws / returns error
+    router.callEndpoint = async (endpoint: string, op: any) => {
+      if (endpoint === ep1) {
+        return op({
+          getSignatureStatuses: async () => ({
+            value: [{ confirmationStatus: "confirmed", err: null }],
+          }),
+        }, endpoint);
+      } else {
+        throw new Error("RPC node 500 internal server error");
+      }
+    };
+
+    const check = await crossCheckSignatureStatus(router, "sig_lying_tx_123");
+    expect(check.singleEndpointFallback).toBe(true);
+    expect(check.independentCheck).toBe(false);
+    expect(check.endpointsChecked).toEqual([ep1]);
+  });
 });
 

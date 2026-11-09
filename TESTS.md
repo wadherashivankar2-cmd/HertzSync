@@ -250,7 +250,7 @@ Test file: `tests/integration/not-found.test.ts`
 - **Vitest Suite**:
   ```
   Test Files  36 passed (36)
-       Tests  113 passed (113)
+       Tests  115 passed (115)
     Duration  26.33s
   ```
 - **Next.js Production Build**:

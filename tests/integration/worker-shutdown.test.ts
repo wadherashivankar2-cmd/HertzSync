@@ -71,13 +71,13 @@ describe("Worker Shutdown Lifecycle (Blueprint Section 5.10 & Phase 4 Safety Rul
     });
 
     const worker1Logs: string[] = [];
-    worker1.stdout.on("data", (d) => worker1Logs.push(d.toString()));
-    worker1.stderr.on("data", (d) => worker1Logs.push(d.toString()));
+    worker1.stdout!.on("data", (d) => worker1Logs.push(d.toString()));
+    worker1.stderr!.on("data", (d) => worker1Logs.push(d.toString()));
 
     // Wait for worker to start up and log startup completion
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => resolve(), 8000);
-      worker1.stdout.on("data", (data) => {
+      worker1.stdout!.on("data", (data) => {
         const text = data.toString();
         if (text.includes("Worker ready") || text.includes("Resuming")) {
           clearTimeout(timeout);
@@ -125,13 +125,13 @@ describe("Worker Shutdown Lifecycle (Blueprint Section 5.10 & Phase 4 Safety Rul
     });
 
     const worker2Logs: string[] = [];
-    worker2.stdout.on("data", (d) => worker2Logs.push(d.toString()));
-    worker2.stderr.on("data", (d) => worker2Logs.push(d.toString()));
+    worker2.stdout!.on("data", (d) => worker2Logs.push(d.toString()));
+    worker2.stderr!.on("data", (d) => worker2Logs.push(d.toString()));
 
     let resumedFound = false;
     await new Promise<void>((resolve) => {
       const timeout = setTimeout(() => resolve(), 8000);
-      worker2.stdout.on("data", (data) => {
+      worker2.stdout!.on("data", (data) => {
         const text = data.toString();
         if (text.includes("Resuming") || text.includes("Worker ready")) {
           resumedFound = true;

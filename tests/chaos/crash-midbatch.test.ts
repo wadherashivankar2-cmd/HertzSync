@@ -100,8 +100,8 @@ describe("Crash Mid-Batch Chaos (Blueprint Section 5.10 & Phase 4 Safety Rules)"
     });
 
     const worker1Logs: string[] = [];
-    worker1.stdout.on("data", (d) => worker1Logs.push(d.toString()));
-    worker1.stderr.on("data", (d) => worker1Logs.push(d.toString()));
+    worker1.stdout!.on("data", (d) => worker1Logs.push(d.toString()));
+    worker1.stderr!.on("data", (d) => worker1Logs.push(d.toString()));
 
     // Wait until worker1 submits the batch (persisted & broadcast initiated), then immediately SIGKILL
     await new Promise<void>((resolve, reject) => {
@@ -113,7 +113,7 @@ describe("Crash Mid-Batch Chaos (Blueprint Section 5.10 & Phase 4 Safety Rules)"
         }
       }, 10000);
 
-      worker1.stdout.on("data", (data) => {
+      worker1.stdout!.on("data", (data) => {
         const text = data.toString();
         if (text.includes("signed and persisted. Broadcasting signature:")) {
           // SIGKILL immediately after submit, before confirm per Blueprint Section 10!
@@ -177,8 +177,8 @@ describe("Crash Mid-Batch Chaos (Blueprint Section 5.10 & Phase 4 Safety Rules)"
     });
 
     const worker2Logs: string[] = [];
-    worker2.stdout.on("data", (d) => worker2Logs.push(d.toString()));
-    worker2.stderr.on("data", (d) => worker2Logs.push(d.toString()));
+    worker2.stdout!.on("data", (d) => worker2Logs.push(d.toString()));
+    worker2.stderr!.on("data", (d) => worker2Logs.push(d.toString()));
 
     // Let worker2 run through startup, resume the unconfirmed batch, and wait until confirmed on DevNet
     await new Promise<void>((resolve, reject) => {

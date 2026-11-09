@@ -77,7 +77,7 @@ export async function assertNoDuplicateEventsHashes(
 
   // 2. Parse confirmed settlement batch memos (prefix: trickle:v1:)
   const hashToBatches = new Map<string, Array<{ signature: string; batchId: string }>>();
-  let totalConfirmedBatches = 0;
+  const distinctBatchIds = new Set<string>();
 
   for (const sigInfo of allSignatures) {
     if (!sigInfo.memo) continue;
@@ -94,29 +94,37 @@ export async function assertNoDuplicateEventsHashes(
       continue;
     }
 
-    totalConfirmedBatches++;
+    distinctBatchIds.add(batchId);
     if (!hashToBatches.has(eventsHash)) {
       hashToBatches.set(eventsHash, []);
     }
     hashToBatches.get(eventsHash)!.push({ signature: sigInfo.signature, batchId });
   }
 
-  // 3. Detect duplicate events hashes
+  // 3. Detect duplicate events hashes across distinct batch IDs
   const duplicateHashes: DuplicateEventsHashReport["duplicateHashes"] = [];
   for (const [eventsHash, batchList] of hashToBatches.entries()) {
-    if (batchList.length > 1) {
+    const distinctBatchMap = new Map<string, string[]>();
+    for (const b of batchList) {
+      if (!distinctBatchMap.has(b.batchId)) {
+        distinctBatchMap.set(b.batchId, []);
+      }
+      distinctBatchMap.get(b.batchId)!.push(b.signature);
+    }
+
+    if (distinctBatchMap.size > 1) {
       duplicateHashes.push({
         eventsHash,
-        count: batchList.length,
+        count: distinctBatchMap.size,
         signatures: batchList.map((b) => b.signature),
-        batchIds: batchList.map((b) => b.batchId),
+        batchIds: Array.from(distinctBatchMap.keys()),
       });
     }
   }
 
   const report: DuplicateEventsHashReport = {
     totalSignaturesScanned: allSignatures.length,
-    totalConfirmedBatches,
+    totalConfirmedBatches: distinctBatchIds.size,
     uniqueEventsHashes: hashToBatches.size,
     duplicateHashes,
     ok: duplicateHashes.length === 0,

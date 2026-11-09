@@ -36,7 +36,7 @@ describe("Metrics Endpoint Integration (Blueprint Section 8.1 & Phase 7)", () =>
 
   it("returns every Section 8.1 metric key with accurate types", () => {
     const report = collectMetrics(db, {
-      RPC_ENDPOINTS: "https://api.devnet.solana.com,https://devnet.helius-rpc.com",
+      RPC_ENDPOINTS: "https://api.devnet.solana.com,https://solana-devnet.gateway.tatum.io",
     });
 
     const m = report.metrics;

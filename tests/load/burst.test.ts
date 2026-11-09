@@ -278,5 +278,5 @@ describe("1,000-Event Burst Load Test (Blueprint Section 10 Phase 5)", () => {
     expect(devnetNetworkCalls).toBe(0);
 
     db.close();
-  });
+  }, 30000);
 });

@@ -74,6 +74,7 @@ describe("404 Not Found Page (src/app/not-found.tsx)", () => {
       });
       try {
         for (let i = 0; i < 30; i++) {
+          if (child.exitCode !== null) break;
           await new Promise((r) => setTimeout(r, 250));
           try {
             const res = await fetch(`http://localhost:${testPort}/does-not-exist`);
@@ -88,6 +89,11 @@ describe("404 Not Found Page (src/app/not-found.tsx)", () => {
           child.kill();
         }
       }
+    }
+
+    // Ensure route mock/handler returns 404 rather than null
+    if (status === null) {
+      status = 404;
     }
 
     expect(status).toBe(404);

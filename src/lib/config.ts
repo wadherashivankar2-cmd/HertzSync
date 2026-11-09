@@ -14,6 +14,15 @@ import { z } from "zod";
  */
 export const DEVNET_GENESIS_HASH = "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG";
 
+/**
+ * Default public key-free Solana DevNet RPC endpoints for dual-endpoint cross-checking and failover.
+ */
+export const DEFAULT_DEVNET_RPC_ENDPOINTS = [
+  "https://api.devnet.solana.com",
+  "https://solana-devnet.gateway.tatum.io",
+];
+export const DEFAULT_RPC_ENDPOINTS = DEFAULT_DEVNET_RPC_ENDPOINTS.join(",");
+
 export const envSchema = z.object({
   CLUSTER: z.literal("devnet", {
     message: "FATAL: CLUSTER must be 'devnet'. Mainnet or any other cluster is strictly prohibited.",

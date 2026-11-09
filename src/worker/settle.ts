@@ -20,69 +20,154 @@ export interface SettleBatchResult {
   error?: string;
 }
 
+export interface SignatureCrossCheckResult {
+  confirmed: boolean;
+  lied: boolean;
+  fallback?: boolean;
+  singleEndpointFallback?: boolean;
+  independentCheck?: boolean;
+  endpointsChecked?: string[];
+}
+
 /**
- * Checks signature status across two distinct endpoints to prevent single lying RPC exploits (S9).
- * Returns { confirmed, lied }
+ * Checks signature status across two strictly distinct endpoints to prevent single lying RPC exploits (S9).
+ * First check is forced on endpoint index 0 (primary).
+ * Second check is explicitly forced on a distinct endpoint index (e.g. index 1).
+ * If only one endpoint exists or responds, returns an explicit status/flag indicating
+ * singleEndpointFallback: true, and does NOT count it as an independent cross-check (independentCheck: false).
  */
 export async function crossCheckSignatureStatus(
   router: RpcRouter,
   signature: string
-): Promise<{ confirmed: boolean; lied: boolean }> {
+): Promise<SignatureCrossCheckResult> {
   const endpoints = router.getEndpoints();
   if (endpoints.length === 0) {
-    return { confirmed: false, lied: false };
+    return {
+      confirmed: false,
+      lied: false,
+      fallback: true,
+      singleEndpointFallback: true,
+      independentCheck: false,
+      endpointsChecked: [],
+    };
   }
 
-  const results: { endpoint: string; confirmed: boolean }[] = [];
-
-  for (const ep of endpoints) {
+  // Helper to query signature status on a specific endpoint
+  async function queryEndpointStatus(ep: string): Promise<boolean | null> {
     if (!router.isEndpointAvailable(ep)) {
-      continue;
+      return null;
     }
-
     const chaos = router.getChaosMode(ep);
     if (chaos === "lie") {
-      // Fabricate confirmed status
-      results.push({ endpoint: ep, confirmed: true });
-      if (results.length >= 2) break;
-      continue;
+      return true;
     }
-
     try {
-      const res = await router.callWithFailover(async (conn) => {
+      const res = await router.callEndpoint(ep, async (conn) => {
         return await conn.getSignatureStatuses([signature], {
           searchTransactionHistory: true,
         });
       });
-
-      const st = res?.value?.[0];
+      if (!res) {
+        return null;
+      }
+      const st = res.value?.[0];
+      if (!st) {
+        // null or undefined means signature not found on this endpoint yet
+        return false;
+      }
       const isConfirmed =
-        st !== null &&
-        st !== undefined &&
         (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized") &&
         st.err === null;
-
-      results.push({ endpoint: ep, confirmed: isConfirmed });
-      if (results.length >= 2) {
-        break;
-      }
+      return isConfirmed;
     } catch {
-      // ignore endpoint failure during cross-check
+      return null;
     }
   }
 
-  if (results.length >= 2) {
-    if (results[0].confirmed !== results[1].confirmed) {
+  // 1. Force the first check on endpoint index 0 (primary)
+  const primaryEndpoint = endpoints[0];
+  const primaryStatus = await queryEndpointStatus(primaryEndpoint);
+
+  // 2. Explicitly force the second check on a distinct endpoint (index >= 1, ep !== primaryEndpoint)
+  const secondaryEndpoints = endpoints.filter((ep, idx) => idx > 0 && ep !== primaryEndpoint);
+  let secondaryEndpoint: string | null = null;
+  let secondaryStatus: boolean | null = null;
+
+  for (const ep of secondaryEndpoints) {
+    const status = await queryEndpointStatus(ep);
+    if (status !== null) {
+      secondaryEndpoint = ep;
+      secondaryStatus = status;
+      break;
+    }
+  }
+
+  // Case 1: Both distinct endpoints responded -> independent quorum verification
+  if (primaryStatus !== null && secondaryStatus !== null && secondaryEndpoint !== null) {
+    const endpointsChecked = [primaryEndpoint, secondaryEndpoint];
+    if (primaryStatus !== secondaryStatus) {
       logger.warn(
-        `Signature ${signature} confirmation mismatch between endpoints (${results[0].endpoint}: ${results[0].confirmed} vs ${results[1].endpoint}: ${results[1].confirmed}).`
+        `Signature ${signature} confirmation mismatch between distinct endpoints (${primaryEndpoint}: ${primaryStatus} vs ${secondaryEndpoint}: ${secondaryStatus}). Potential lying RPC detected.`
       );
-      return { confirmed: false, lied: true };
+      return {
+        confirmed: false,
+        lied: true,
+        fallback: false,
+        singleEndpointFallback: false,
+        independentCheck: true,
+        endpointsChecked,
+      };
     }
-    return { confirmed: results[0].confirmed && results[1].confirmed, lied: false };
+    return {
+      confirmed: primaryStatus && secondaryStatus,
+      lied: false,
+      fallback: false,
+      singleEndpointFallback: false,
+      independentCheck: true,
+      endpointsChecked,
+    };
   }
 
-  // Fallback to single endpoint confirmation if only one available
-  return { confirmed: results[0]?.confirmed ?? false, lied: false };
+  // Case 2: Only primary responded (no secondary configured or secondary failed)
+  if (primaryStatus !== null) {
+    logger.warn(
+      `Only primary RPC endpoint (${primaryEndpoint}) responded for signature ${signature}. Operating in unverified single-endpoint fallback mode.`
+    );
+    return {
+      confirmed: primaryStatus,
+      lied: false,
+      fallback: true,
+      singleEndpointFallback: true,
+      independentCheck: false,
+      endpointsChecked: [primaryEndpoint],
+    };
+  }
+
+  // Case 3: Primary failed, but a secondary endpoint responded
+  if (secondaryStatus !== null && secondaryEndpoint !== null) {
+    logger.warn(
+      `Primary RPC endpoint failed; only secondary endpoint (${secondaryEndpoint}) responded for signature ${signature}. Operating in unverified single-endpoint fallback mode.`
+    );
+    return {
+      confirmed: secondaryStatus,
+      lied: false,
+      fallback: true,
+      singleEndpointFallback: true,
+      independentCheck: false,
+      endpointsChecked: [secondaryEndpoint],
+    };
+  }
+
+  // Case 4: Neither endpoint responded
+  logger.warn(`No RPC endpoints responded for signature ${signature}.`);
+  return {
+    confirmed: false,
+    lied: false,
+    fallback: true,
+    singleEndpointFallback: true,
+    independentCheck: false,
+    endpointsChecked: [],
+  };
 }
 
 /**

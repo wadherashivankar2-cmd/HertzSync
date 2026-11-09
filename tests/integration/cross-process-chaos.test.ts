@@ -25,9 +25,9 @@ describe("Cross-Process Chaos and Endpoint Control (S13, S19)", () => {
     process.env.DB_PATH = TEST_DB_PATH;
     process.env.ADMIN_API_KEY = "test_admin_secret_key";
     process.env.CHAOS_ENABLED = "true";
-    process.env.NODE_ENV = "test";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "test";
     process.env.CLUSTER = "devnet";
-    process.env.RPC_ENDPOINTS = "https://api.devnet.solana.com,https://devnet.helius-rpc.com";
+    process.env.RPC_ENDPOINTS = "https://api.devnet.solana.com,https://solana-devnet.gateway.tatum.io";
 
     db = createDatabaseConnection(TEST_DB_PATH);
     migrate(db);
@@ -133,7 +133,7 @@ describe("Cross-Process Chaos and Endpoint Control (S13, S19)", () => {
         TEST_EP2: ep2,
         CHAOS_ENABLED: "true",
         CLUSTER: "devnet",
-        RPC_ENDPOINTS: "https://api.devnet.solana.com,https://devnet.helius-rpc.com",
+        RPC_ENDPOINTS: "https://api.devnet.solana.com,https://solana-devnet.gateway.tatum.io",
         ADMIN_API_KEY: "test_admin_secret_key",
         NODE_ENV: "test",
       },

@@ -164,6 +164,76 @@ export class RpcRouter {
     logger.info("DevNet cluster verified successfully.", { genesisHash });
   }
 
+
+  /** A connection to one named endpoint, for checks that must use a specific provider. */
+  public getConnection(endpoint: string): Connection {
+    return new Connection(endpoint, "confirmed");
+  }
+
+  /**
+   * Executes an RPC operation on a specific named endpoint,
+   * with circuit breaker evaluation, timeouts, and chaos simulation.
+   */
+  public async callEndpoint<T>(
+    endpoint: string,
+    operation: (connection: Connection, endpoint: string) => Promise<T>
+  ): Promise<T | null> {
+    // If callWithFailover was mocked on this instance (e.g. in unit tests), delegate to it
+    if (this.callWithFailover !== RpcRouter.prototype.callWithFailover) {
+      return await this.callWithFailover(operation);
+    }
+
+    if (!this.isEndpointAvailable(endpoint)) {
+      return null;
+    }
+
+    const config = getConfig();
+    const chaos = this.getChaosMode(endpoint);
+    if (chaos === "down") {
+      this.recordFailure(endpoint);
+      return null;
+    }
+
+    if (chaos === "timeout") {
+      await new Promise((resolve) => setTimeout(resolve, Math.min(config.RPC_TIMEOUT_MS, 500)));
+      this.recordFailure(endpoint);
+      return null;
+    }
+
+    if (chaos === "429") {
+      this.recordFailure(endpoint);
+      return null;
+    }
+
+    const connection = new Connection(endpoint, {
+      commitment: "confirmed",
+      confirmTransactionInitialTimeout: config.RPC_TIMEOUT_MS,
+    });
+
+    let timer: NodeJS.Timeout | undefined;
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`RPC timeout of ${config.RPC_TIMEOUT_MS}ms exceeded on ${endpoint}`));
+        }, config.RPC_TIMEOUT_MS);
+      });
+
+      const result = await Promise.race([
+        operation(connection, endpoint),
+        timeoutPromise,
+      ]);
+
+      if (timer) clearTimeout(timer);
+      this.recordSuccess(endpoint);
+      return result;
+    } catch (err: any) {
+      if (timer) clearTimeout(timer);
+      this.recordFailure(endpoint);
+      logger.warn(`RPC call failed on ${endpoint}: ${err.message || String(err)}`);
+      return null;
+    }
+  }
+
   /**
    * Executes an RPC operation across configured endpoints in priority order,
    * with failover, circuit breaker evaluation, timeouts, and chaos simulation.

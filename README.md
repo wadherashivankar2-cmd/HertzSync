@@ -5,7 +5,7 @@
 
 **Repository:** https://github.com/wadherashivankar2-cmd/HertzSync
 
-[![Tests](https://img.shields.io/badge/tests-113%20passed-brightgreen)](TESTS.md)
+[![Tests](https://img.shields.io/badge/tests-115%20passed-brightgreen)](TESTS.md)
 [![Security](https://img.shields.io/badge/security-S1--S20%20documented-blue)](SECURITY.md)
 [![Limits](https://img.shields.io/badge/limits-disclosed-orange)](KNOWN_LIMITS.md)
 [![Network](https://img.shields.io/badge/network-Solana%20DevNet%20only-purple)](KNOWN_LIMITS.md)
@@ -170,8 +170,6 @@ Device (simulated Ed25519 signer)
 
 ---
 
----
-
 ## Key features
 
 **Ingest and integrity**
@@ -217,7 +215,7 @@ Every claim below can be reproduced from this repository.
 
 | Check | Result | Where to look |
 |---|---|---|
-| Unit, integration, security, and chaos tests | 113 tests in 36 files passing on the last full run | `npm test`, see [TESTS.md](TESTS.md) |
+| Unit, integration, security, and chaos tests | 115 tests in 36 files passing on the last full run | `npm test`, see [TESTS.md](TESTS.md) |
 | Outage test | 10 events queued during a 20-second outage, lost = 0 | `tests/chaos/outage.test.ts` |
 | Crash test | SIGKILL during a live batch, restart resumes it, same signature and serialized transaction, no rebuild | `tests/chaos/crash-midbatch.test.ts` |
 | Burst test | 1,000 events, zero drops, local ingest p95 of 7.45 ms and 15.5 ms across two runs, peak WAL recorded | `tests/load/burst.test.ts` |
@@ -421,7 +419,7 @@ Look for `events_queued` (goes to 0 as the worker settles), `events_paid` (rises
 | `npm run sim` | Sends simulated, Ed25519-signed device events to the ingest API |
 | `npm run report` | Prints a plain-English audit and reconciliation summary |
 | `npm run backup` | Writes a timestamped copy of the database to `backups/` (`VACUUM INTO`) |
-| `npm test` | Runs the full test suite (113 tests across 36 files) |
+| `npm test` | Runs the full test suite (115 tests across 36 files) |
 | `npm audit --omit=dev` | Lists vulnerabilities in production dependencies only |
 
 ---
